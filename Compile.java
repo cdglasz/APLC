@@ -37,24 +37,17 @@ public class Compile {
         // call the toplevel recursive descent parsing function to construct
         // our IR
         CommonTree ast = (CommonTree)parser.prog().getTree();
-//        System.err.println("AST: "+ast.toStringTree());
-//        System.err.println("Vars: "+parser.user_variables().toString());
-//        System.err.println("Funcs: "+parser.user_functions().toString());
-        
-//        // tree node stream for semantic processor
-//        CommonTreeNodeStream nodes = new CommonTreeNodeStream(ast);
-//        // create new tree parser
-//        semantics semWalk = new semantics(nodes);
-//        // run the tree walker
-//        CommonTree newast = (CommonTree)semWalk.prog().getTree();
-//        System.err.println("AST: "+newast.toStringTree());
+        //        System.err.println("AST: "+ast.toStringTree());
+        //        System.err.println("Vars: "+parser.user_variables().toString());
+        //        System.err.println("Funcs: "+parser.user_functions().toString());
         
         
         // tree node stream for code generator
         CommonTreeNodeStream nodes = new CommonTreeNodeStream(ast);
         // create new tree parser
         gen generator = new gen(nodes);
-        // run the tree walker
+        
+        // Create the code
         String code = header(name);
         code += generator.prog();
         code += footer(generator.functions());
