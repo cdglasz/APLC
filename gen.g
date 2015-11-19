@@ -7,18 +7,40 @@ options{
 }
 
 @members {
+    // String to hold the user-defined method definitions
     String user_defined_functions = "";
-    int code = 0;
+
+    HashMap<String,String> functionCode = new HashMap<String,String>();
+    HashMap<String,String> variableCode = new HashMap<String,String>();
+
+    // ID for unique temporary variable names
+    int tempID = 0;
+    int variableID = 0;
+    int functionID = 0;
+
+    // Create unique temporary variable name
     public String getTempVar() {
-        return "temp" + code++;
+        return "temp" + tempID++;
     }
+
+    // Create unique temporary variable name
+    public String getVariable() {
+        return "var" + variableID++;
+    }
+
+    // Create unique temporary variable name
+    public String getFunction() {
+        return "func" + functionID++;
+    }
+
+    // Accessor method for user-defined method definitions
     public String functions() {
         return user_defined_functions;
     }
 }
 
 prog returns [String code]
-    :   { $code = "";} stmt_list { $code += $stmt_list.code; }
+    :   stmt_list { $code = $stmt_list.code; }
     ;
 
 stmt_list returns [String code]
@@ -28,24 +50,41 @@ stmt_list returns [String code]
 stmt returns [String code]
     :   ^(FUNC t=TARGET o=operator_definition)
         {
-            user_defined_functions += "\n\tpublic static double[] " + $t.text;
+            String f1 = $t.text;
+            String f2 = getFunction();
+            functionCode.put(f1, f2);
+
+            // Method header
+            user_defined_functions += "\n\t// Function associated with " + f1;
+            user_defined_functions += "\n\tpublic static double[] " + f2;
             user_defined_functions += "(double[] left_arg, double[] right_arg)";
+
+            // Left and right running variables
             user_defined_functions += "{\n\t\tdouble[] left, right;\n";
+
+            // Method body
             user_defined_functions += $o.code;
+
+            // Return the result
             user_defined_functions += "\t\treturn right;\n";
             user_defined_functions += "\t}\n";
+
+            // No code in the main method
             $code = "";
         }
     |   e=expression {
             $code = $e.code;
-            $code += "\t\tSystem.out.println(Arrays.toString(right));\n";
+            $code += "\t\tSystem.out.println(APLOperators.toString(right));\n";
         }
     ;
 
 expression returns [String code]
     :   ^(VAR t=TARGET e=expression)
         {
-            $code = $e.code + "\t\tdouble[] " + $t.text + "=right;\n";
+            String v1 = $t.text;
+            String v2 = getVariable();
+            variableCode.put(v1, v2);
+            $code = $e.code + "\t\tdouble[] " + v2 + " = right;\n";
         }
     |   dyadic_operator    { $code = $dyadic_operator.code; }
     |   monadic_operator   { $code = $monadic_operator.code; }
@@ -55,7 +94,7 @@ expression returns [String code]
 
 operator_definition returns [String code]
     :   s=operator_body {$code = $s.code; }
-        ;
+    ;
 
 operator_body returns [String code]
     :   {$code = "";} ^(STMTLIST (s=operator_body_stmt {$code += $s.code;})+)
@@ -87,7 +126,16 @@ atom returns [String code]
     |   niladic_operator   { $code = $niladic_operator.code; }
     |   '⍵' { $code = "\t\tright = right_arg;\n"; }
     |   '⍺' { $code = "\t\tright = left_arg;\n"; }
-    |   TARGET { $code = "\t\tright = " + $TARGET.text + ";\n"; }
+    |   t=TARGET
+        {
+            String v1 = $t.text;
+            if (variableCode.get(v1) == null) {
+                System.err.println("Compile error: use of undefined variable");
+                System.exit(1);
+            }
+            String v2 = variableCode.get(v1);
+            $code = "\t\tright = " + v2 + ";\n";
+        }
     ;
 
 array returns [String code]
@@ -98,69 +146,98 @@ array returns [String code]
     ;
 
 niladic_operator returns [String code]
-    :   ^(OP TARGET) { $code = "\t\tright = " + $TARGET.text + "(null,null);\n"; }
+    :   ^(OP t=TARGET)
+        {
+            String f1 = $t.text;
+            if (functionCode.get(f1) == null) {
+                System.err.println("Compile error: use of undefined function");
+                System.exit(1);
+            }
+            String f2 = functionCode.get(f1);
+            $code = "\t\tright = " + f2 + "(null,null);\n";
+        }
     ;
-
+// TODO: Split operators into separate rule, so adverbs can be more robust
+// TODO: Replace methods with Operation objects
 monadic_operator returns [String code]
     :   ^(OP ^(ADV '/' ^(OP '+')) e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.add(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.across(new APLOperators.Add(), right);\n";
         }
     |   ^(OP ^(ADV . .) .)
         {
             $code = "\t\t// WARNING: This adverb is currently unsupported\n";
         }
+    |   ^(OP t=TARGET e=expression)
+        {
+            String f1 = $t.text;
+            if (functionCode.get(f1) == null) {
+                System.err.println("Compile error: use of undefined function");
+                System.exit(1);
+            }
+            String f2 = functionCode.get(f1);
+            $code = $e.code + "\t\tright = " + f2 + "(null, right);\n";
+        }
     |   ^(OP '~' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.not(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.not(right);\n";
         }
     |   ^(OP '⍋' e=expression) 
         { 
-            $code = $e.code + "\t\tright = APLOperators.sortup(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.sort(right);\n";
         }
     |   ^(OP '⍒' e=expression) 
         { 
-            $code = $e.code + "\t\tright = APLOperators.sortdown(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.reverse(APLOperators.sort(right));\n";
         }
     |   ^(OP '⍎' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.execute(null, right);\n";
-        }
-    |   ^(OP '⊂' e=expression) 
-        {
-            $code = $e.code + "\t\tright = APLOperators.contain(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.exec(right);\n";
         }
     |   ^(OP '?' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.roll(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.roll(right);\n";
         }
     |   ^(OP '⌈' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.ceil(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.ceil(right);\n";
         }
     |   ^(OP '⌊' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.floor(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.floor(right);\n";
         }
     |   ^(OP '⍴' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.shape(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.shape(right);\n";
         }
     |   ^(OP '|' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.mag(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.abs(right);\n";
         }
     |   ^(OP '⍳' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.indices(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.indices(right);\n";
         }
     |   ^(OP '*' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.exp(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.exp(right);\n";
         }
     |   ^(OP '-' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.neg(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.neg(right);\n";
         }
     |   ^(OP '+' e=expression) 
         {
@@ -168,47 +245,53 @@ monadic_operator returns [String code]
         }
     |   ^(OP '×' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.sign(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.signum(right);\n";
         }
     |   ^(OP '÷' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.recip(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.reciprocal(right);\n";
         }
     |   ^(OP ',' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.cat(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.cat(right);\n";
         }
     |   ^(OP '○' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.pi(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.pi(right);\n";
         }
     |   ^(OP '⍟' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.log(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.ln(right);\n";
         }
     |   ^(OP '⌽' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.rev1(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.reverse(right);\n";
         }
     |   ^(OP '⊖' e=expression)
         {
-            $code = $e.code + "\t\tright = APLOperators.rev2(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.reverse2(right);\n";
         }
     |   ^(OP '⍕' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.format(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.format(right);\n";
         }
     |   ^(OP '⍉' e=expression) 
         { 
-            $code = $e.code + "\t\tright = APLOperators.transpose(null, right);\n";
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.trans(right);\n";
         }
     |   ^(OP '!' e=expression) 
         {
-            $code = $e.code + "\t\tright = APLOperators.factorial(null, right);\n";
-        }
-    |   ^(OP t=TARGET e=expression)
-        { 
-            $code = $e.code + "\t\tright = " + $t.text + "(null, right);\n"; 
+            $code = $e.code + "\t\tright = ";
+            $code += "APLOperators.factorial(right);\n";
         }
     ;
 
@@ -216,6 +299,19 @@ dyadic_operator returns [String code]
     :   ^(OP ^(CONJ . . .) . .)
         {
             $code = "\t\t// WARNING: conjugates currently unsupported\n";
+        }
+    |   ^(OP t=TARGET s=simple_expression e=expression)
+        {
+            String f1 = $t.text;
+            if (functionCode.get(f1) == null) {
+                System.err.println("Compile error: use of undefined function");
+                System.exit(1);
+            }
+            String f2 = functionCode.get(f1);
+            String temp = getTempVar();
+            $code = $e.code + "\t\tdouble[] " + temp + "=right;\n" + $s.code;
+            $code += "\t\tleft = right; right = " + temp + ";\n";
+            $code += "\t\tright = " + f2 + "(left, right);\n";
         }
     |   ^(OP '∊' s=simple_expression e=expression)
         {
@@ -432,7 +528,7 @@ dyadic_operator returns [String code]
             String temp = getTempVar();
             $code = $e.code + "\t\tdouble[] " + temp + "=right;\n" + $s.code;
             $code += "\t\tleft = right; right = " + temp + ";\n";
-            $code += "\t\tright = APLOperators.logb(left, right);\n";
+            $code += "\t\tright = APLOperators.log(left, right);\n";
         }
     |   ^(OP '⌽' s=simple_expression e=expression)
         {
@@ -469,11 +565,4 @@ dyadic_operator returns [String code]
             $code += "\t\tleft = right; right = " + temp + ";\n";
             $code += "\t\tright = APLOperators.combinations(left, right);\n"; 
         }
-    |   ^(OP t=TARGET s=simple_expression e=expression)
-        {
-            String temp = getTempVar();
-            $code = $e.code + "\t\tdouble[] " + temp + "=right;\n" + $s.code;
-            $code += "\t\tleft = right; right = " + temp + ";\n";
-            $code += "\t\tright = " + $t.text + "(left, right);\n"; 
-        }
-;
+    ;
