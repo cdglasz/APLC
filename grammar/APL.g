@@ -41,12 +41,12 @@ tokens{
 }
 
 prog
-    :   '\n'* stmt_list '\n'* EOF -> stmt_list
+    :   stmt_list EOF -> stmt_list
     ;
 
 stmt_list
     :   // Statements are separated by newlines or ◊'s
-        stmt (('\n'|'◊')+ stmt)* -> ^(STMTLIST stmt+)
+        '\n'* stmt (('\n'|'◊')+ stmt)* '\n'* -> ^(STMTLIST stmt+)
     ;
 
 stmt
