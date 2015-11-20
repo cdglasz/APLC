@@ -37,7 +37,7 @@ public class Compile {
         // call the toplevel recursive descent parsing function to construct
         // our IR
         CommonTree ast = (CommonTree)parser.prog().getTree();
-                System.err.println("AST: "+ast.toStringTree());
+        //        System.err.println("AST: "+ast.toStringTree());
         //        System.err.println("Vars: "+parser.user_variables().toString());
         //        System.err.println("Funcs: "+parser.user_functions().toString());
         
@@ -47,9 +47,7 @@ public class Compile {
         gen generator = new gen(nodes);
         
         // Create the code
-        String code = header(name);
-        code += generator.prog();
-        code += footer(generator.functions());
+        String code = generator.prog(name);
         
         BufferedWriter output = null;
         try {
@@ -70,20 +68,5 @@ public class Compile {
         } else {
             System.out.println("Compilation Failed");
         }
-    }
-    
-    public static String header(String name) {
-        String code = "import java.util.*;\n";
-        code += "public class " + name + " {\n";
-        code += "\tpublic static void main(String[] args) {\n";
-        code += "\t\tdouble[] left, right;\n";
-        return code;
-    }
-    
-    public static String footer(String functions) {
-        String code = "\t}\n";
-        code += functions;
-        code += "}\n";
-        return code;
     }
 }

@@ -67,8 +67,21 @@ options{
     }
 }
 
-prog returns [String code]
-    :   stmt_list { $code = $stmt_list.code; }
+prog [String name] returns [String code]
+    :   {
+            indent = 0;
+            $code = "import java.util.*;\n";
+            $code += "public class " + name;
+            $code += " {\n" + indent(++indent);
+            $code += "public static void main(String[] args)";
+            $code += " {\n" + indent(++indent);
+            $code += "double[] _T__left_, _T__right_;\n";
+        }
+        stmt_list
+        {
+            $code += $stmt_list.code;
+            $code += indent(--indent) + "}\n" + udo + "}";
+        }
     ;
 
 stmt_list returns [String code]
