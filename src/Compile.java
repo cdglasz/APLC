@@ -37,10 +37,9 @@ public class Compile {
         // call the toplevel recursive descent parsing function to construct
         // our IR
         CommonTree ast = (CommonTree)parser.prog().getTree();
-        //        System.err.println("AST: "+ast.toStringTree());
+                System.err.println("AST: "+ast.toStringTree());
         //        System.err.println("Vars: "+parser.user_variables().toString());
         //        System.err.println("Funcs: "+parser.user_functions().toString());
-        
         
         // tree node stream for code generator
         CommonTreeNodeStream nodes = new CommonTreeNodeStream(ast);
@@ -67,7 +66,7 @@ public class Compile {
         int compilationResult = compiler.run(null, null, null, name + ".java");
         if (compilationResult == 0) {
             System.out.println("Compilation complete.");
-            System.out.println("Run with 'java " + name + "'.");
+            System.out.println("Run with 'java -cp \".:aplc.jar\" " + name + "'.");
         } else {
             System.out.println("Compilation Failed");
         }

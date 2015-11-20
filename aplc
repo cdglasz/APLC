@@ -1,2 +1,2 @@
 #!/bin/bash
-java -cp ".:/usr/local/lib/antlr-3.5.2-complete.jar" Compile $1
+java -cp ".:/usr/local/lib/antlr-3.5.2-complete.jar:jar/aplc.jar" Compile $1

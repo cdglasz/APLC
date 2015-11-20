@@ -1,35 +1,63 @@
 JC := javac
 JR := java
+JAR := jar cf
+
+GRMDIR := grammar
+SRCDIR := src
+OBJDIR := build
+JARDIR := jar
+
+SRCDEST := -fo $(SRCDIR)
+OBJDEST := -d $(OBJDIR)
+JARDEST := $(JARDIR)/aplc.jar
+
+GRMEXT := g
+TKNEXT := tokens
+SRCEXT := java
+OBJEXT := class
 
 CP := -cp /usr/local/lib/antlr-3.5.2-complete.jar
 ANTLR := $(JR) $(CP) org.antlr.Tool
 
-GRAMMARS := APL.g gen.g
-GENERATED_SOURCES := APLLexer.java APLParser.java gen.java
+_GRM := APL gen
+GRM := $(patsubst %,$(GRMDIR)/%.$(GRMEXT),$(_GRM))
 
-RUNTIME_LIB_SOURCES := APLOperators.java
-RUNTIME_LIB_OBJECTS := APLOperators.class
+_GEN := APLLexer APLParser gen
+GEN := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_GEN))
+TKN := $(patsubst %,$(SRCDIR)/%.$(TKNEXT),$(_GRM))
+GENOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_GEN))
 
-COMPILER_SOURCES := Compile.java $(GENERATED_SOURCES)
-COMPILER_OBJECTS := Compile.class
+_OPS := APLOperators
+OPS := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_OPS))
+OPSOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_OPS))
 
-SOURCES := $(COMPILER_SOURCES) $(RUNTIME_LIB_SOURCES)
-OBJECTS := $(COMPILER_OBJECTS) $(RUNTIME_LIB_OBJECTS)
+_CMP := $(_GEN) Compile
+CMP := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_CMP))
+CMPOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_CMP))
+
+
+SOURCES := $(CMP) $(OPS)
+OBJECTS := $(CMPOBJ) $(OPSOBJ)
+JARS := $(JARDIR)/aplc.jar
 
 all: $(SOURCES) $(OBJECTS)
 
-$(COMPILER_OBJECTS): $(COMPILER_SOURCES)
-	$(JC) $(CP) $(COMPILER_SOURCES)
+$(CMPOBJ): $(CMP)
+	$(JC) $(CP) $(OBJDEST) $(CMP)
 
-$(GENERATED_SOURCES): $(GRAMMARS)
-	$(ANTLR) $(GRAMMARS)
+$(GEN): $(GRM)
+	$(ANTLR) $(GRM) $(SRCDEST) 
 
-$(RUNTIME_LIB_OBJECTS): $(RUNTIME_LIB_SOURCES)
-	$(JC) $(RUNTIME_LIB_SOURCES)
+$(OPSOBJ): $(OPS)
+	$(JC) $(OBJDEST) $(OPS)
+
+jar: $(OBJECTS) $(JARS)
+
+$(JARS): $(OBJECTS)
+	$(JAR) $(JARS) -C $(OBJDIR) .
 
 clean:
-	rm *.tokens
-	rm *Lexer.java
-	rm *Parser.java
-	rm gen.java
-	rm *.class
+	rm $(TKN)
+	rm $(GEN)
+	rm $(OBJDIR)/*
+	rm $(JARS)
