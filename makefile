@@ -27,7 +27,7 @@ GEN := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_GEN))
 TKN := $(patsubst %,$(SRCDIR)/%.$(TKNEXT),$(_GRM))
 GENOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_GEN))
 
-_OPS := APLOperators
+_OPS := APLOps
 OPS := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_OPS))
 OPSOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_OPS))
 

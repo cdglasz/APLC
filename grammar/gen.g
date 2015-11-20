@@ -85,7 +85,7 @@ prog [String name] returns [String code]
     ;
 
 stmt_list returns [String code]
-        :   {$code = "";} ^(STMTLIST (s=stmt {$code += $s.code;})+)
+    :   {$code = "";} ^(STMTLIST (s=stmt {$code += $s.code;})+)
     ;
 
 stmt returns [String code]
@@ -250,11 +250,11 @@ monadic_operation returns [String code]
 monadic_operator returns [String code]
     :   ^(ADV '/' ^(OP o=dyadic_operator))
         {
-            $code = "new APLOperators.across(" + $o.code + ")";
+            $code = "new APLOps.across(" + $o.code + ")";
         }
     |   ^(ADV '¨' ^(OP o=monadic_operator))
         {
-            $code = "new APLOperators.each(" + $o.code + ")";
+            $code = "new APLOps.each(" + $o.code + ")";
         }
     |   t=TARGET
         {
@@ -268,95 +268,95 @@ monadic_operator returns [String code]
         }
     |   '~'
         {
-            $code = "new APLOperators.not()";
+            $code = "new APLOps.not()";
         }
     |   '⍋' 
         { 
-            $code = "new APLOperators.sort()";
+            $code = "new APLOps.sort()";
         }
     |   '⍒' 
         { 
-            $code = "new APLOperators.sortdown()";
+            $code = "new APLOps.sortdown()";
         }
     |   '⍎'
         {
-            $code = "new APLOperators.exec()";
+            $code = "new APLOps.exec()";
         }
     |   '?'
         {
-            $code = "new APLOperators.roll()";
+            $code = "new APLOps.roll()";
         }
     |   '⌈' 
         {
-            $code = "new APLOperators.ceil()";
+            $code = "new APLOps.ceil()";
         }
     |   '⌊' 
         {
-            $code = "new APLOperators.floor()";
+            $code = "new APLOps.floor()";
         }
     |   '⍴' 
         {
-            $code = "new APLOperators.shape()";
+            $code = "new APLOps.shape()";
         }
     |   '|'
         {
-            $code = "new APLOperators.abs()";
+            $code = "new APLOps.abs()";
         }
     |   '⍳' 
         {
-            $code = "new APLOperators.indices()";
+            $code = "new APLOps.indices()";
         }
     |   '*' 
         {
-            $code = "new APLOperators.exp()";
+            $code = "new APLOps.exp()";
         }
     |   '-' 
         {
-            $code = "new APLOperators.neg()";
+            $code = "new APLOps.neg()";
         }
     |   '+' 
         {
-            $code = "new APLOperators.clone()";
+            $code = "new APLOps.clone()";
         }
     |   '×' 
         {
-            $code = "new APLOperators.signum()";
+            $code = "new APLOps.signum()";
         }
     |   '÷'
         {
-            $code = "new APLOperators.reciprocal()";
+            $code = "new APLOps.reciprocal()";
         }
     |   ',' 
         {
-            $code = "new APLOperators.cat()";
+            $code = "new APLOps.cat()";
         }
     |   '○' 
         {
-            $code = "new APLOperators.pi()";
+            $code = "new APLOps.pi()";
         }
     |   '⍟'
         {
-            $code = "new APLOperators.ln()";
+            $code = "new APLOps.ln()";
         }
     |   '⌽'
         {
-            $code = "new APLOperators.reverse()";
+            $code = "new APLOps.reverse()";
         }
     |   '⊖'
         {
-            $code = "new APLOperators.reverse2()";
+            $code = "new APLOps.reverse2()";
         }
     |   '⍕' 
         {
-            $code = "new APLOperators.format()";
+            $code = "new APLOps.format()";
         }
     |   '⍉' 
         { 
-            $code = "new APLOperators.trans()";
+            $code = "new APLOps.trans()";
         }
     |   '!' 
         {
-            $code = "new APLOperators.factorial()";
+            $code = "new APLOps.factorial()";
         }
     ;
 
@@ -376,7 +376,7 @@ dyadic_operation returns [String code]
 dyadic_operator returns [String code]
     :   ^(OP ^(CONJ . . .) . .)
         {
-            $code = "\t\t// WARNING: conjugates currently unsupported\n";
+            $code = indent(indent) + "// WARNING: conjugates unsupported\n";
         }
     |   t=TARGET
         {
@@ -391,146 +391,146 @@ dyadic_operator returns [String code]
         }
     |   '∊'
         {
-            $code = "new APLOperators.contains()"; 
+            $code = "new APLOps.contains()"; 
         }
     |   '↑'
         { 
-            $code = "new APLOperators.take()"; 
+            $code = "new APLOps.take()"; 
         }
     |   '↓'
         { 
-            $code = "new APLOperators.drop()"; 
+            $code = "new APLOps.drop()"; 
         }
     |   '/'
         { 
-            $code = "new APLOperators.compress()"; 
+            $code = "new APLOps.compress()"; 
         }
     |   '<'
         { 
-            $code = "new APLOperators.less()"; 
+            $code = "new APLOps.less()"; 
         }
     |   '≤'
         { 
-            $code = "new APLOperators.leq()"; 
+            $code = "new APLOps.leq()"; 
         }
     |   '='
         { 
-            $code = "new APLOperators.equ()"; 
+            $code = "new APLOps.equ()"; 
         }
     |   '≥'
         { 
-            $code = "new APLOperators.greq()"; 
+            $code = "new APLOps.greq()"; 
         }
     |   '>'
         { 
-            $code = "new APLOperators.greater()";
+            $code = "new APLOps.greater()";
         }
     |   '≠'
         { 
-            $code = "new APLOperators.neq()";
+            $code = "new APLOps.neq()";
         }
     |   '∨'
         { 
-            $code = "new APLOperators.or()"; 
+            $code = "new APLOps.or()"; 
         }
     |   '∧'
         { 
-            $code = "new APLOperators.and()"; 
+            $code = "new APLOps.and()"; 
         }
     |   '⍱'
         { 
-            $code = "new APLOperators.nor()"; 
+            $code = "new APLOps.nor()"; 
         }
     |   '⍲'
         { 
-            $code = "new APLOperators.nand()"; 
+            $code = "new APLOps.nand()"; 
         }
     |   '⊥'
         { 
-            $code = "new APLOperators.decode()"; 
+            $code = "new APLOps.decode()"; 
         }
     |   '⊤'
         { 
-            $code = "new APLOperators.encode()"; 
+            $code = "new APLOps.encode()"; 
         }
     |   '\\'
         { 
-            $code = "new APLOperators.expand()"; 
+            $code = "new APLOps.expand()"; 
         }
     |   '?'
         { 
-            $code = "new APLOperators.deal()"; 
+            $code = "new APLOps.deal()"; 
         }
     |   '⌈'
         { 
-            $code = "new APLOperators.max()";
+            $code = "new APLOps.max()";
         }
     |   '⌊'
         { 
-            $code = "new APLOperators.min()";
+            $code = "new APLOps.min()";
         }
     |   '⍴'
         { 
-            $code = "new APLOperators.reshape()";
+            $code = "new APLOps.reshape()";
         }
     |   '|'
         { 
-            $code = "new APLOperators.mod()"; 
+            $code = "new APLOps.mod()"; 
         }
     |   '⍳'
         { 
-            $code = "new APLOperators.indexof()"; 
+            $code = "new APLOps.indexof()"; 
         }
     |   '*'
         { 
-            $code = "new APLOperators.pow()"; 
+            $code = "new APLOps.pow()"; 
         }
     |   '-'
         { 
-            $code = "new APLOperators.sub()"; 
+            $code = "new APLOps.sub()"; 
         }
     |   '+'
         { 
-            $code = "new APLOperators.add()"; 
+            $code = "new APLOps.add()"; 
         }
     |   '×'
         { 
-            $code = "new APLOperators.mul()"; 
+            $code = "new APLOps.mul()"; 
         }
     |   '÷'
         { 
-            $code = "new APLOperators.div()"; 
+            $code = "new APLOps.div()"; 
         }
     |   ','
         { 
-            $code = "new APLOperators.concat()";
+            $code = "new APLOps.concat()";
         }
     |   '○'
         { 
-            $code = "new APLOperators.trig()"; 
+            $code = "new APLOps.trig()"; 
         }
     |   '⍟'
         { 
-            $code = "new APLOperators.log()";
+            $code = "new APLOps.log()";
         }
     |   '⌽'
         {
-            $code = "new APLOperators.rot1()";
+            $code = "new APLOps.rot1()";
         }
     |   '⊖'
         {
-            $code = "new APLOperators.rot2()";
+            $code = "new APLOps.rot2()";
         }
     |   '⍕'
         {
-            $code = "new APLOperators.format()";
+            $code = "new APLOps.format()";
         }
     |   '⍉'
         {
-            $code = "new APLOperators.transpose()";
+            $code = "new APLOps.transpose()";
         }
     |   '!'
         { 
-            $code = "new APLOperators.combinations()"; 
+            $code = "new APLOps.combinations()"; 
         }
     ;

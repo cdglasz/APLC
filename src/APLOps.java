@@ -1,6 +1,6 @@
 import java.util.*;
 import java.text.DecimalFormat;
-public class APLOperators {
+public class APLOps {
     public static String toString(double[] a) {
         DecimalFormat df = new DecimalFormat("#.##########");
         String str = "";
@@ -60,8 +60,10 @@ public class APLOperators {
     }
     
     //========================================//
-    //           Operationic Operators            //
+    //           Monadic Operators            //
     //========================================//
+    
+    // Monadic function associated with +
     static class clone extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -72,6 +74,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ~
     static class not extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -82,6 +85,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⍋
     static class sort extends Operation {
         public double[] exec(double[] dc, double[] a) {
             double[] c = a.clone();
@@ -90,15 +94,17 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⍒
     static class sortdown extends Operation {
         public double[] exec(double[] dc, double[] a) {
             double[] c = a.clone();
             Arrays.sort(c);
-            c = APLOperators.exec(new reverse(), c);
+            c = APLOps.exec(new reverse(), c);
             return c;
         }
     }
     
+    // Monadic function associated with ?
     static class roll extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -108,6 +114,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⌈
     static class ceil extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -118,6 +125,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⌊
     static class floor extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -128,12 +136,14 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⍴
     static class shape extends Operation {
         public double[] exec(double[] dc, double[] a) {
             return new double[] {a.length};
         }
     }
     
+    // Monadic function associated with |
     static class abs extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -144,6 +154,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⍳
     static class indices extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = (int)a[0];
@@ -154,6 +165,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with *
     static class exp extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -164,6 +176,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with -
     static class neg extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -174,6 +187,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ×
     static class signum extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -190,6 +204,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ÷
     static class reciprocal extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -200,6 +215,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ○
     static class pi extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -210,6 +226,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⍟
     static class ln extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -220,6 +237,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with ⌽
     static class reverse extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -230,6 +248,7 @@ public class APLOperators {
         }
     }
     
+    // Monadic function associated with !
     static class factorial extends Operation {
         public double[] exec(double[] dc, double[] a) {
             int l = a.length;
@@ -245,8 +264,10 @@ public class APLOperators {
     }
     
     //========================================//
-    //            Operationic Operators            //
+    //            Dyadic Operators            //
     //========================================//
+    
+    // Dyadic function associated with ∊
     static class contains extends Operation {
         public double[] exec(double[] a, double[] b) {
             int l = a.length;
@@ -262,6 +283,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ↑
     static class take extends Operation {
         public double[] exec(double[] a, double[] b) {
             int l = a.length;
@@ -288,6 +310,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ↓
     static class drop extends Operation {
         public double[] exec(double[] a, double[] b) {
             int l = a.length;
@@ -317,6 +340,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with /
     static class compress extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -360,6 +384,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⊥
     static class decode extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length != 1) {
@@ -373,6 +398,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⊤
     static class encode extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (b.length != 1) {
@@ -390,6 +416,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ?
     static class deal extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length != 1 || b.length != 1) {
@@ -402,20 +429,21 @@ public class APLOperators {
             Operation drop = new drop();
             Operation take = new take();
             double[] c = new double[(int)a[0]];
-            double[] inds = APLOperators.exec(indices, b);
-            double[] options = APLOperators.exec(indices, b);
+            double[] inds = APLOps.exec(indices, b);
+            double[] options = APLOps.exec(indices, b);
             for (int i = 0; i < a[0]; i++) {
-                int ind = (int)APLOperators.exec(roll, inds)[0];
+                int ind = (int)APLOps.exec(roll, inds)[0];
                 c[i] = options[ind-1];
-                inds = APLOperators.exec(drop, new double[] {-1}, inds);
-                options = APLOperators.exec(concat,
-                                            APLOperators.exec(take, new double[] {ind-1},options),
-                                            APLOperators.exec(drop, new double[] {ind},options));
+                inds = APLOps.exec(drop, new double[] {-1}, inds);
+                options = APLOps.exec(concat,
+                                            APLOps.exec(take, new double[] {ind-1},options),
+                                            APLOps.exec(drop, new double[] {ind},options));
             }
             return c;
         }
     }
     
+    // Dyadic function associated with ⍴
     static class reshape extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length != 1) {
@@ -431,6 +459,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ,
     static class concat extends Operation {
         public double[] exec(double[] a, double[] b) {
             double[] c = new double[a.length + b.length];
@@ -442,6 +471,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with |
     static class mod extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -467,6 +497,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⍳
     static class indexof extends Operation {
         public double[] exec(double[] a, double[] b) {
             int l = b.length;
@@ -484,6 +515,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ○
     static class trig extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -550,6 +582,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⍟
     static class log extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -575,6 +608,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with +
     static class add extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -600,6 +634,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with -
     static class sub extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -625,6 +660,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ×
     static class mul extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -650,6 +686,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ÷
     static class div extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -675,6 +712,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with *
     static class pow extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -700,6 +738,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with <
     static class less extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -725,6 +764,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ≤
     static class leq extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -750,6 +790,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with =
     static class equ extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -775,6 +816,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ≥
     static class greq extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -800,6 +842,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with >
     static class greater extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -825,6 +868,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ≠
     static class neq extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -850,6 +894,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ∨
     static class or extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -875,6 +920,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ∧
     static class and extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -900,6 +946,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⍱
     static class nor extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -925,6 +972,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⍲
     static class nand extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -950,6 +998,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⌈
     static class max extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
@@ -975,6 +1024,7 @@ public class APLOperators {
         }
     }
     
+    // Dyadic function associated with ⌊
     static class min extends Operation {
         public double[] exec(double[] a, double[] b) {
             if (a.length == 1) {
