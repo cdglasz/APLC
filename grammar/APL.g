@@ -169,8 +169,12 @@ n_symbols : '?' | '⌈' | '⌊' | '⍴' | '|' | '⍳' | '*' | '-' | '+' | '×' |
 m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' ;
 
 num
-    :   DECIMAL
+    :   '¯ '                         -> ^(DECIMAL["Double.POSITIVE_INFINITY"])
+    |   '¯¯ '                        -> ^(DECIMAL["Double.NEGATIVE_INFINITY"])
+    |   DECIMAL
     |   '¯' d=DECIMAL                           -> ^(DECIMAL["-"+$d.text])
+    |   i=INTEGER                               -> ^(DECIMAL[$i.text+".0"])
+    |   '¯' i=INTEGER                           -> ^(DECIMAL["-"+$i.text+".0"])
     ;
 
 DECIMAL : ('0' .. '9')+  ('.' ('0' .. '9')+)? ;
