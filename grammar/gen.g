@@ -294,7 +294,11 @@ monadic_operator returns [String code]
         {
             $code = "new APLOps.floor()";
         }
-    |   '⍴' 
+    |   '↑'
+        {
+            $code = "new APLOps.head()";
+        }
+    |   '⍴'
         {
             $code = "new APLOps.shape()";
         }
