@@ -17,6 +17,7 @@ options{
 
     // ID for unique temporary variable names
     int tempID = 0;
+    int function_level = 0;
 
     int indent = 0;
     public String indent(int ix) {
@@ -30,7 +31,7 @@ options{
     public String getTempVar() {
         return "_T__var_" + (tempID++) + "_";
     }
-    
+
     // Create unique temporary variable name
     public String getVariable(String str) {
         String name = str;
@@ -65,6 +66,20 @@ options{
     public String functions() {
         return udo;
     }
+
+    public String output() {
+        String code = "";
+        code += indent(indent);
+        code += "System.out.println();\n";
+        code += indent(indent);
+        code += "if (_T__right_ == null)\n" + indent(indent+1);
+        code += "APLOps.flush();\n" + indent(indent);
+        code += "else\n" + indent(indent+1);
+        code += "System.out.println(_T__right_.toString());\n";
+        code += indent(indent);
+        code += "System.out.println(sep);\n";
+        return code;
+    }
 }
 
 prog [String name] returns [String code]
@@ -89,7 +104,7 @@ stmt_list returns [String code]
     ;
 
 stmt returns [String code]
-    :   { indent = 3; }
+    :   { indent = 3; function_level++; }
         ^(FUNC t=TARGET o=operator_definition)
         {
             String f1 = $t.text;
@@ -120,12 +135,14 @@ stmt returns [String code]
 
             // No code in the main method
             indent = 2;
+            function_level--;
             $code = "";
         }
     |   e=expression {
             $code = $e.code;
-            $code += indent(indent);
-            $code += "System.out.println(APLOps.toString(_T__right_));\n";
+            if (function_level == 0) {
+                $code += output();
+            }
         }
     ;
 
@@ -144,50 +161,7 @@ expression returns [String code]
     ;
 
 operator_definition returns [String code]
-    :   s=operator_body {$code = $s.code; }
-    ;
-
-operator_body returns [String code]
-    :   {$code = "";} ^(STMTLIST (s=operator_body_stmt {$code += $s.code;})+)
-    ;
-
-operator_body_stmt returns [String code]
-    :   { indent = 3; }
-        ^(FUNC t=TARGET o=operator_definition)
-        {
-            String f1 = $t.text;
-            String f2 = getFunction(f1);
-
-            // Method header
-            indent = 1;
-            udo += "\n" + indent(indent);
-            udo += "// Function associated with " + f1;
-            udo += "\n" + indent(indent);
-            udo += "static class " + f2 + " extends APLOps.Operation ";
-            udo += "{\n" + indent(++indent);
-            udo += "public double[] exec";
-            udo += "(double[] _A__left_, double[] _A__right_) ";
-            udo += "{\n" + indent(++indent);
-
-            // Left and right running variables
-            udo += "double[] _T__left_, _T__right_;\n";
-
-            // Method body
-            udo += $o.code;
-
-            // Return the result
-            udo += indent(indent);
-            udo += "return _T__right_;\n";
-            udo += indent(--indent) + "}\n";
-            udo += indent(--indent) + "}\n";
-
-            // No code in the main method
-            indent = 3;
-            $code = "";
-        }
-    |   e=expression {
-            $code = $e.code;
-        }
+    :   s=stmt_list {$code = $s.code; }
     ;
 
 simple_expression returns [String code]
