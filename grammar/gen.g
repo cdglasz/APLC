@@ -88,9 +88,12 @@ prog [String name] returns [String code]
             $code = "import java.util.*;\n";
             $code += "public class " + name;
             $code += " {\n" + indent(++indent);
+            $code += "private static String sep = (char)27 + \"[4m\" + ";
+            $code += "String.format(\"\%80s\",\"\") + (char)27 + \"[24m\";\n";
+            $code += indent(indent);
             $code += "public static void main(String[] args)";
             $code += " {\n" + indent(++indent);
-            $code += "double[] _T__left_, _T__right_;\n";
+            $code += "APLTensor _T__left_, _T__right_;\n";
         }
         stmt_list
         {
@@ -117,12 +120,14 @@ stmt returns [String code]
             udo += "\n" + indent(indent);
             udo += "static class " + f2 + " extends APLOps.Operation ";
             udo += "{\n" + indent(++indent);
-            udo += "public double[] exec";
-            udo += "(double[] _A__left_, double[] _A__right_)";
+            udo += "public String symbol() { return \"" + f1 + "\"; }";
+            udo += indent(indent);
+            udo += "public APLTensor exec";
+            udo += "(APLTensor _A__left_, APLTensor _A__right_)";
             udo += "{\n" + indent(++indent);
 
             // Left and right running variables
-            udo += "double[] _T__left_, _T__right_;\n";
+            udo += "APLTensor _T__left_, _T__right_;\n";
             
             // Method body
             udo += $o.code;
@@ -152,7 +157,7 @@ expression returns [String code]
             String v1 = $t.text;
             String v2 = getVariable(v1);
             $code = $e.code + indent(indent);
-            $code += "double[] " + v2 + " = _T__right_;\n";
+            $code += "APLTensor " + v2 + " = _T__right_;\n";
         }
     |   dyadic_operation    { $code = $dyadic_operation.code; }
     |   monadic_operation   { $code = $monadic_operation.code; }
@@ -190,10 +195,10 @@ array returns [String code]
     :   ^(ARRAY d=DECIMAL 
             {
                 $code = indent(indent);
-                $code += "_T__right_ = new double[] {" + $d.text;
+                $code += "_T__right_ = new APLTensor(" + $d.text;
             }
             (d=DECIMAL { $code += ", " + $d.text; })*) 
-        { $code += "};\n"; }
+        { $code += ");\n"; }
     ;
     
 niladic_operation returns [String code]
@@ -343,12 +348,13 @@ dyadic_operation returns [String code]
         {
             String temp = getTempVar();
             $code = $e.code + indent(indent);
-            $code += "double[] " + temp + "=_T__right_;\n" + $s.code;
+            $code += "APLTensor " + temp + " = _T__right_;\n";
+            $code += $s.code;
             $code += indent(indent);
             $code += "_T__left_ = _T__right_; _T__right_ = " + temp + ";\n";
             $code += indent(indent) + "_T__right_ = APLOps.exec(" + $o.code;
             $code += ", _T__left_, _T__right_);\n";
-}
+        }
     ;
 
 dyadic_operator returns [String code]

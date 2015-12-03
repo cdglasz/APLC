@@ -31,16 +31,20 @@ _OPS := APLOps
 OPS := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_OPS))
 OPSOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_OPS))
 
+_TSR := APLTensor
+TSR := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_TSR))
+TSROBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_TSR))
+
 _CMP := $(_GEN) Compile
 CMP := $(patsubst %,$(SRCDIR)/%.$(SRCEXT),$(_CMP))
 CMPOBJ := $(patsubst %,$(OBJDIR)/%.$(OBJEXT),$(_CMP))
 
 
-SOURCES := $(CMP) $(OPS)
-OBJECTS := $(CMPOBJ) $(OPSOBJ)
+SOURCES := $(CMP) $(OPS) $(TSR)
+OBJECTS := $(CMPOBJ) $(OPSOBJ) $(TSROBJ)
 JARS := $(JARDIR)/aplc.jar
 
-all: $(SOURCES) $(OBJECTS)
+all: $(SOURCES) $(OBJECTS) jar
 
 $(CMPOBJ): $(CMP)
 	$(JC) $(CP) $(OBJDEST) $(CMP)
@@ -48,8 +52,11 @@ $(CMPOBJ): $(CMP)
 $(GEN): $(GRM)
 	$(ANTLR) $(GRM) $(SRCDEST) 
 
-$(OPSOBJ): $(OPS)
-	$(JC) $(OBJDEST) $(OPS)
+$(TSROBJ): $(TSR) $(OPS)
+	$(JC) $(OBJDEST) $(TSR) $(OPS)
+
+$(OPSOBJ): $(OPS) $(TSR)
+	$(JC) $(OBJDEST) $(OPS) $(TSR)
 
 jar: $(OBJECTS) $(JARS)
 
