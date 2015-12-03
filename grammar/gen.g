@@ -143,6 +143,9 @@ stmt returns [String code]
             function_level--;
             $code = "";
         }
+    |   ^(SUPPRESS e=expression) {
+            $code = $e.code;
+        }
     |   e=expression {
             $code = $e.code;
             if (function_level == 0) {

@@ -7,7 +7,7 @@ options {
 }
 
 tokens{
-    STMTLIST;ARRAY;PAREN;VAR;FUNC;OP;ADV;CONJ;BACKSLASH;
+    STMTLIST;ARRAY;PAREN;VAR;FUNC;OP;ADV;CONJ;BACKSLASH;SUPPRESS;
 }
 
 @members{
@@ -57,6 +57,7 @@ stmt
                 user_defined_variables.remove($f.text);
             function_arity.put($f.text,(Integer)current_arity);
         } -> ^(FUNC $f $o)
+    |   expression ';'      ->  ^(SUPPRESS expression)
     |   expression
     ;
 
