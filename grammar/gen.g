@@ -378,7 +378,11 @@ dyadic_operation returns [String code]
     ;
 
 dyadic_operator returns [String code]
-    :   ^(OP ^(CONJ . . .) . .)
+    :   ^(CONJ '.' ^(OP o1=dyadic_operator) ^(OP o2=dyadic_operator))
+        {
+            $code = "new APLOps.tie(" + $o1.code + "," + $o2.code + ")";
+        }
+    |   ^(CONJ . . .)
         {
             $code = indent(indent) + "// WARNING: conjugates unsupported\n";
         }

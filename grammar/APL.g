@@ -157,9 +157,9 @@ adverb
     |   o=monadic_base '¨'                  -> ^(ADV '¨' ^(OP $o))
     ;
 conjunction
-    :   '∘' c=('.') o=dyadic_operator               -> ^(CONJ $c ^(OP '∘') $o)
+    :   '∘' c=('.') o=dyadic_operator               -> ^(CONJ $c ^(OP '∘') ^(OP $o))
     |   d1=dyadic_base c=('.')
-        d2=dyadic_operator     -> ^(CONJ $c ^(OP $d1) $d2)
+        d2=dyadic_operator     -> ^(CONJ $c ^(OP $d1) ^(OP $d2))
     ;
 
 d_symbols : '∊' | '↓' | '/' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨'
