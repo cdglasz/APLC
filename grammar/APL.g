@@ -7,7 +7,7 @@ options {
 }
 
 tokens{
-    STMTLIST;ARRAY;PAREN;VAR;FUNC;OP;ADV;CONJ;
+    STMTLIST;ARRAY;PAREN;VAR;FUNC;OP;ADV;CONJ;BACKSLASH;
 }
 
 @members{
@@ -153,7 +153,7 @@ dyadic_base
     ;
 
 adverb
-    :   o=dyadic_base '/'        -> ^(ADV '/' ^(OP $o))
+    :   o=dyadic_base a=d_adverbs        -> ^(ADV $a ^(OP $o))
     |   o=monadic_base '¨'                  -> ^(ADV '¨' ^(OP $o))
     ;
 conjunction
@@ -167,6 +167,8 @@ d_symbols : '∊' | '↓' | '/' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨
 n_symbols : '?' | '⌈' | '⌊' | '↑' | '⍴' | '|' | '⍳' | '*' | '-' | '+' | '×'
 | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕' | '⍉' | '!' ;
 m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' ;
+
+d_adverbs : '/' | '\\' -> BACKSLASH ;
 
 num
     :   '¯ '                         -> ^(DECIMAL["Double.POSITIVE_INFINITY"])

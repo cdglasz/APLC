@@ -229,7 +229,11 @@ monadic_operation returns [String code]
 monadic_operator returns [String code]
     :   ^(ADV '/' ^(OP o=dyadic_operator))
         {
-            $code = "new APLOps.across(" + $o.code + ")";
+            $code = "new APLOps.reduce(" + $o.code + ")";
+        }
+    |   ^(ADV BACKSLASH ^(OP o=dyadic_operator))
+        {
+            $code = "new APLOps.scan(" + $o.code + ")";
         }
     |   ^(ADV '¨' ^(OP o=monadic_operator))
         {
