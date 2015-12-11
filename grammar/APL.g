@@ -19,7 +19,7 @@ tokens{
     
     // The arity of the function currently being parsed. 
     //  (This is hacky in my opinion)
-    int current_arity = 0;
+    Stack<Integer> current_arity = new Stack<Integer>();
     
     // Accessor method for user defined functions
     public HashMap<String,Integer> user_functions() {
@@ -50,13 +50,16 @@ stmt_list
     ;
 
 stmt
-    :   f=TARGET '←' o=operator_definition
+    :   // We're starting a function, so reset the current arity
+        { current_arity.push(0); }
+        f=TARGET '←' '{' s=stmt_list '}'
         {
             // If a variable exists with this name, overwrite it
             if (user_defined_variables.contains($f.text))
                 user_defined_variables.remove($f.text);
-            function_arity.put($f.text,(Integer)current_arity);
-        } -> ^(FUNC $f $o)
+            function_arity.put($f.text,current_arity.pop());
+        }
+        -> ^(FUNC $f $s)
     |   expression ';'      ->  ^(SUPPRESS expression)
     |   expression
     ;
@@ -71,18 +74,15 @@ expression
         } -> ^(VAR $t $e)
     |   dyad
     |   monad
-    |   nilad
-    |   simple_expression
+    |   atom
     ;
 
 operator_definition
-    :   // We're starting a function, so reset the current arity
-        { current_arity = 0; }
-        '{' stmt_list '}' -> stmt_list
+    :   '{' stmt_list '}' -> stmt_list
     ;
 
 dyad
-    :   s=simple_expression o=dyadic_operator e=expression -> ^(OP $o $s $e)
+    :   s=atom o=dyadic_operator e=expression -> ^(OP $o $s $e)
     ;
 monad
     :   o=monadic_operator e=expression -> ^(OP $o $e)
@@ -91,29 +91,33 @@ nilad
     :   o=niladic_operator -> ^(OP $o)
     ;
 
-simple_expression
-    :   atom
-    |   '(' expression ')'              -> ^(PAREN expression)
-    ;
 atom
-    :   array
+    :   '(' expression ')'              -> ^(PAREN expression)
+    |   array
     |   nilad
     |   '⍵'
-        // A right argument means this function is has at least an arity of 1
-        { current_arity = current_arity < 1 ? 1 : current_arity; }
+        {   // A right argument means this function is at least arity 1
+            current_arity.push(Math.max(current_arity.pop(), 1));
+        }
     |   '⍺'
-        // A left argument means this function has an arity of 2
-        { current_arity = 2; }
+        {   // A left argument means this function is arity 2
+            current_arity.pop(); current_arity.push(2);
+        }
     |   TARGET
         // Only use a target in this context if it is a variable
-        {user_defined_variables.contains($TARGET.text) }?
+        { user_defined_variables.contains($TARGET.text) }?
     ;
 array
     :   num+                        -> ^(ARRAY num+)
     ;
 
 niladic_operator
-    :   o=niladic_base
+    :   TARGET
+        {
+            // Operator is niladic if its arity is 0
+            function_arity.get($TARGET.text) != null &&
+            function_arity.get($TARGET.text).equals(0)
+        }?
     ;
 monadic_operator
     :   a=adverb
@@ -124,14 +128,6 @@ dyadic_operator
     |   c=conjunction
     ;
 
-niladic_base
-    :   TARGET
-        {
-            // Operator is niladic if its arity is 0
-            function_arity.get($TARGET.text) != null &&
-            function_arity.get($TARGET.text).equals(0)
-        }?
-    ;
 monadic_base
     :   TARGET
         {
@@ -140,7 +136,6 @@ monadic_base
             function_arity.get($TARGET.text).equals(1)
         }?
     |   m_symbols
-    |   n_symbols
     ;
 dyadic_base
     :   TARGET
@@ -150,7 +145,6 @@ dyadic_base
             function_arity.get($TARGET.text).equals(2)
         }?
     |   d_symbols
-    |   n_symbols
     ;
 
 adverb
@@ -163,11 +157,12 @@ conjunction
         d2=dyadic_operator     -> ^(CONJ $c ^(OP $d1) ^(OP $d2))
     ;
 
-d_symbols : '∊' | '↓' | '/' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨'
-| '∧' | '⍱' | '⍲' | '⊥' | '⊤' | '\\' ;
-n_symbols : '?' | '⌈' | '⌊' | '↑' | '⍴' | '|' | '⍳' | '*' | '-' | '+' | '×'
-| '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕' | '⍉' | '!' ;
-m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' ;
+d_symbols : '∊' | '↓' | '/' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨' | '∧'
+| '⍱' | '⍲' | '⊥' | '⊤' | '\\' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|' | '⍳' | '*'
+| '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕' | '⍉' | '!' ;
+m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|'
+| '⍳' | '*' | '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕'
+| '⍉' | '!';
 
 d_adverbs : '/' | '\\' -> BACKSLASH ;
 
