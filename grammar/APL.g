@@ -164,7 +164,7 @@ m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' | '?' | '⌈' | '⌊' | '↑' | 
 | '⍳' | '*' | '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕'
 | '⍉' | '!';
 
-d_adverbs : '/' | '\\' -> BACKSLASH ;
+d_adverbs : '/' | '⌿' | '⍀' | '\\' -> BACKSLASH ;
 
 num
     :   '¯ '                         -> ^(DECIMAL["Double.POSITIVE_INFINITY"])

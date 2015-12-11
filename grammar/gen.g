@@ -120,7 +120,7 @@ stmt returns [String code]
             udo += "\n" + indent(indent);
             udo += "static class " + f2 + " extends APLOps.Operation ";
             udo += "{\n" + indent(++indent);
-            udo += "public String symbol() { return \"" + f1 + "\"; }";
+            udo += "public String symbol() { return \"" + f1 + "\"; }\n";
             udo += indent(indent);
             udo += "public APLTensor exec";
             udo += "(APLTensor _A__left_, APLTensor _A__right_)";
@@ -234,9 +234,17 @@ monadic_operator returns [String code]
         {
             $code = "new APLOps.reduce(" + $o.code + ")";
         }
+    |   ^(ADV '⌿' ^(OP o=dyadic_operator))
+        {
+            $code = "new APLOps.reduce1(" + $o.code + ")";
+        }
     |   ^(ADV BACKSLASH ^(OP o=dyadic_operator))
         {
             $code = "new APLOps.scan(" + $o.code + ")";
+        }
+    |   ^(ADV '⍀' ^(OP o=dyadic_operator))
+        {
+            $code = "new APLOps.scan1(" + $o.code + ")";
         }
     |   ^(ADV '¨' ^(OP o=monadic_operator))
         {

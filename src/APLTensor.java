@@ -168,7 +168,7 @@ public class APLTensor {
         for (int i = 0; i < shape.length; i++)
             if (i != axis)
                 tensorSize *= shape[i];
-        for (int i = axis + 1; i < shape.length; i++) 
+        for (int i = axis + 1; i < shape.length; i++)
             distanceBetween *= shape[i];
         
         for (int i = 0; i < shape[axis]; i++) {
