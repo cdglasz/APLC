@@ -35,12 +35,27 @@ public class APLTensor {
         return l;
     }
     
-    private int index(int[] index) {
+    public int index(int[] index) {
         int access = 0;
-        for (int i = shape.length; i > 0; i--) {
-            access *= shape[i - 1];
-            access += index[shape.length - i];
+        int sh = values.length;
+        for (int i = 0; i < shape.length; i++) {
+            sh /= shape[i];
+            access += sh * index[i];
         }
+        return access;
+    }
+    
+    public int[] index(int index) {
+        int access[] = new int[shape.length];
+        int sh = values.length;
+        int runningIndex = index;
+        for (int i = 0; i < shape.length; i++) {
+            sh /= shape[i];
+            int idx = runningIndex / sh;
+            runningIndex %= sh;
+            access[i] = idx;
+        }
+        
         return access;
     }
     
