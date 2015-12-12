@@ -162,17 +162,20 @@ public class APLTensor {
     
     public APLTensor[] alongAxis(int axis) {
         APLTensor[] ret = new APLTensor[shape[axis]];
+        int[] newshape = new int[shape.length - 1];
         
         int tensorSize = 1;
-        int distanceBetween = 1;
-        for (int i = 0; i < shape.length; i++)
-            if (i != axis)
-                tensorSize *= shape[i];
-        for (int i = axis + 1; i < shape.length; i++)
-            distanceBetween *= shape[i];
+        for (int i = 0; i < axis; i++) {
+            tensorSize *= shape[i];
+            newshape[i] = shape[i];
+        }
+        for (int i = axis+1; i < shape.length; i++) {
+            tensorSize *= shape[i];
+            newshape[i-1] = shape[i];
+        }
         
         for (int i = 0; i < shape[axis]; i++) {
-            APLTensor t = new APLTensor(tensorSize);
+            APLTensor t = new APLTensor(newshape);
             for (int j = 0; j < tensorSize; j++) {
                 if (axis == 0)
                     t.set(values[i*tensorSize + j], j);
@@ -180,6 +183,30 @@ public class APLTensor {
                     t.set(values[i + j*shape[axis]], j);
             }
             ret[i] = t;
+        }
+        return ret;
+    }
+    
+    public static APLTensor mergeAxes(int axis, APLTensor[] axes) {
+        int[] oldshape = axes[0].shape();
+        int[] newshape = new int[oldshape.length + 1];
+        for (int i = 0; i < axis; i++)
+            newshape[i] = oldshape[i];
+        newshape[axis] = axes.length;
+        for (int i = axis; i < oldshape.length; i++)
+            newshape[i+1] = oldshape[i];
+        
+        int tensorSize = axes[0].length();
+        
+        APLTensor ret = new APLTensor(newshape);
+        
+        for (int i = 0; i < axes.length; i++) {
+            for (int j = 0; j < tensorSize; j++) {
+                if (axis == 0)
+                    ret.set(axes[i].get(j), i*tensorSize + j);
+                else
+                    ret.set(axes[i].get(j), i + j*newshape[axis]);
+            }
         }
         return ret;
     }
