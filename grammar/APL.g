@@ -103,21 +103,19 @@ atom
         {   // A left argument means this function is arity 2
             current_arity.pop(); current_arity.push(2);
         }
-    |   TARGET
-        // Only use a target in this context if it is a variable
-        { user_defined_variables.contains($TARGET.text) }?
+    |   {   // Only use variable if it exists here
+            user_defined_variables.contains(input.LT(1).getText())
+        }? TARGET
     ;
 array
     :   num+                        -> ^(ARRAY num+)
     ;
 
 niladic_operator
-    :   TARGET
-        {
-            // Operator is niladic if its arity is 0
-            function_arity.get($TARGET.text) != null &&
-            function_arity.get($TARGET.text).equals(0)
-        }?
+    :   {   // Operator is niladic if its arity is 0
+            function_arity.get(input.LT(1).getText()) != null &&
+            function_arity.get(input.LT(1).getText()).equals(0)
+        }? TARGET
     ;
 monadic_operator
     :   a=adverb
@@ -129,21 +127,17 @@ dyadic_operator
     ;
 
 monadic_base
-    :   TARGET
-        {
-            // Operator is monadic if its arity is 1
-            function_arity.get($TARGET.text) != null &&
-            function_arity.get($TARGET.text).equals(1)
-        }?
+    :   {   // Operator is monadic if its arity is 1
+            function_arity.get(input.LT(1).getText()) != null &&
+            function_arity.get(input.LT(1).getText()).equals(1)
+        }? TARGET
     |   m_symbols
     ;
 dyadic_base
-    :   TARGET
-        {
-            // Operator is dyadic if its arity is 2
-            function_arity.get($TARGET.text) != null &&
-            function_arity.get($TARGET.text).equals(2)
-        }?
+    :   {   // Operator is dyadic if its arity is 2
+            function_arity.get(input.LT(1).getText()) != null &&
+            function_arity.get(input.LT(1).getText()).equals(2)
+        }? TARGET
     |   d_symbols
     ;
 
