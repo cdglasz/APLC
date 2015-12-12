@@ -272,10 +272,6 @@ monadic_operator returns [String code]
         { 
             $code = "new APLOps.sortdown()";
         }
-    |   '⍎'
-        {
-            $code = "new APLOps.exec()";
-        }
     |   '?'
         {
             $code = "new APLOps.roll()";
@@ -344,10 +340,6 @@ monadic_operator returns [String code]
         {
             $code = "new APLOps.reverse2()";
         }
-    |   '⍕' 
-        {
-            $code = "new APLOps.format()";
-        }
     |   '⍉' 
         { 
             $code = "new APLOps.trans()";
@@ -404,10 +396,6 @@ dyadic_operator returns [String code]
         { 
             $code = "new APLOps.drop()"; 
         }
-    |   '/'
-        { 
-            $code = "new APLOps.compress()"; 
-        }
     |   '<'
         { 
             $code = "new APLOps.less()"; 
@@ -455,10 +443,6 @@ dyadic_operator returns [String code]
     |   '⊤'
         { 
             $code = "new APLOps.encode()"; 
-        }
-    |   '\\'
-        { 
-            $code = "new APLOps.expand()"; 
         }
     |   '?'
         { 
@@ -523,10 +507,6 @@ dyadic_operator returns [String code]
     |   '⊖'
         {
             $code = "new APLOps.rot2()";
-        }
-    |   '⍕'
-        {
-            $code = "new APLOps.format()";
         }
     |   '⍉'
         {

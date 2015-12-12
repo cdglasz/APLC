@@ -50,24 +50,26 @@ stmt_list
     ;
 
 stmt
+    :   operator_def
+    |   expression ';'      ->  ^(SUPPRESS expression)
+    |   expression
+    ;
+
+operator_def
     :   // We're starting a function, so reset the current arity
         { current_arity.push(0); }
         f=TARGET '←' '{' s=stmt_list '}'
-        {
-            // If a variable exists with this name, overwrite it
+        {   // If a variable exists with this name, overwrite it
             if (user_defined_variables.contains($f.text))
                 user_defined_variables.remove($f.text);
             function_arity.put($f.text,current_arity.pop());
         }
         -> ^(FUNC $f $s)
-    |   expression ';'      ->  ^(SUPPRESS expression)
-    |   expression
     ;
 
 expression
     :   t=TARGET '←' e=expression
-        {
-            // If a function exists with this name, overwrite it
+        {   // If a function exists with this name, overwrite it
             if (function_arity.get($t.text) != null)
                 function_arity.remove($t.text);
             user_defined_variables.add($t.text);
@@ -77,18 +79,11 @@ expression
     |   atom
     ;
 
-operator_definition
-    :   '{' stmt_list '}' -> stmt_list
-    ;
-
 dyad
-    :   s=atom o=dyadic_operator e=expression -> ^(OP $o $s $e)
+    :   a=atom o=dyadic_operator e=expression -> ^(OP $o $a $e)
     ;
 monad
     :   o=monadic_operator e=expression -> ^(OP $o $e)
-    ;
-nilad
-    :   o=niladic_operator -> ^(OP $o)
     ;
 
 atom
@@ -96,10 +91,12 @@ atom
     |   array
     |   nilad
     |   '⍵'
+        { current_arity.size() >= 0 }?
         {   // A right argument means this function is at least arity 1
             current_arity.push(Math.max(current_arity.pop(), 1));
         }
     |   '⍺'
+        { current_arity.size() >= 0 }?
         {   // A left argument means this function is arity 2
             current_arity.pop(); current_arity.push(2);
         }
@@ -111,6 +108,9 @@ array
     :   num+                        -> ^(ARRAY num+)
     ;
 
+nilad
+    :   o=niladic_operator -> ^(OP $o)
+    ;
 niladic_operator
     :   {   // Operator is niladic if its arity is 0
             function_arity.get(input.LT(1).getText()) != null &&
@@ -151,11 +151,11 @@ conjunction
         d2=dyadic_operator     -> ^(CONJ $c ^(OP $d1) ^(OP $d2))
     ;
 
-d_symbols : '∊' | '↓' | '/' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨' | '∧'
-| '⍱' | '⍲' | '⊥' | '⊤' | '\\' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|' | '⍳' | '*'
-| '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕' | '⍉' | '!' ;
-m_symbols : '~' | '⍋' | '⍒' | '⍎' | '⊂' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|'
-| '⍳' | '*' | '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍕'
+d_symbols : '∊' | '↓' | '<' | '≤' | '=' | '≥' | '>' | '≠' | '∨' | '∧'
+| '⍱' | '⍲' | '⊥' | '⊤' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|' | '⍳' | '*'
+| '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖' | '⍉' | '!' ;
+m_symbols : '~' | '⍋' | '⍒' | '?' | '⌈' | '⌊' | '↑' | '⍴' | '|'
+| '⍳' | '*' | '-' | '+' | '×' | '÷' | ',' | '○' | '⍟' | '⌽' | '⊖'
 | '⍉' | '!';
 
 d_adverbs : '/' | '⌿' | '⍀' | '\\' -> BACKSLASH ;
@@ -171,6 +171,6 @@ num
 
 DECIMAL : ('0' .. '9')+ '.' ('0' .. '9')+ ;
 INTEGER : ('0' .. '9')+;
-TARGET  : ('A' .. 'Z' | 'a' .. 'z')('A' .. 'Z' | 'a' .. 'z' | '0' .. '9')* ;
+TARGET  : ('A' .. 'Z' | 'a' .. 'z')('A' .. 'Z' | 'a' .. 'z' | '0' .. '9' | '_' )* ;
 COMMENT : '⍝' ~('\n'|'\r')* '\r'? '\n' {$channel=HIDDEN;};
 WS      : ( ' ' | '\t' | '\r' | '\n' ) {$channel=HIDDEN;};
