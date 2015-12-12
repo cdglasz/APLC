@@ -596,21 +596,47 @@ public class APLOps {
     }
     public static APLTensor reverse(APLTensor a) {
         double[] c = a.values();
-        for (int i = 0; i < c.length; i++)
-            c[i] = a.get(c.length - i - 1);
-        return new APLTensor(c,a.shape());
+        if (a.dimensions() == 1) {
+            for (int i = 0; i < c.length; i++)
+                c[i] = a.get(c.length - i - 1);
+            return new APLTensor(c,a.shape());
+        }
+        APLTensor[] axes = a.alongAxis(0);
+        for (int i = 0; i < axes.length; i++) {
+            axes[i] = reverse(axes[i]);
+        }
+        APLTensor ret = APLTensor.mergeAxes(0, axes);
+        ret.reshape(a.shape());
+        return ret;
+    }
+    
+    // Monadic function associated with ⌽
+    static class reverse2 extends Operation {
+        public String symbol() { return "⌽"; }
+        public APLTensor exec(APLTensor dc, APLTensor a) {
+            return APLOps.reverse2(a);
+        }
+    }
+    public static APLTensor reverse2(APLTensor a) {
+        double[] c = a.values();
+        if (a.dimensions() == 1) {
+            for (int i = 0; i < c.length; i++)
+                c[i] = a.get(c.length - i - 1);
+            return new APLTensor(c,a.shape());
+        }
+        APLTensor[] axes = a.alongAxis(a.dimensions()-1);
+        for (int i = 0; i < axes.length; i++) {
+            axes[i] = reverse2(axes[i]);
+        }
+        APLTensor ret = APLTensor.mergeAxes(a.dimensions()-1, axes);
+        ret.reshape(a.shape());
+        return ret;
     }
     
     // Monadic function associated with ⍉
     static class trans extends Operation {
         public String symbol() { return "⍉"; }
         public APLTensor exec(APLTensor dc, APLTensor a) {
-            // Anything more than matrices are really hard to transpose
-            if (a.dimensions() > 2) {
-                log("OPERATOR " + symbol() +
-                    " NOT SUPPORTED FOR TENSORS OF >2 DIMENSIONS");
-                return null;
-            }
             return APLOps.trans(a);
         }
     }
@@ -618,11 +644,22 @@ public class APLOps {
         if (a.dimensions() == 1) {
             return a.clone();
         }
-        int[] newshape = new int[] {a.shape()[1], a.shape()[0]};
-        double[] c = a.values();
-        for (int i = 0; i < c.length; i++)
-            c[i] = a.get(c.length - i - 1);
-        return new APLTensor(c,a.shape());
+        
+        int[] newshape = new int[a.dimensions()];
+        for (int i = 0; i < a.dimensions(); i++)
+            newshape[i] = a.shape()[a.dimensions() - i - 1];
+        
+        APLTensor ret = new APLTensor(newshape);
+        
+        for (int i = 0; i < a.length(); i++) {
+            int[] index = a.index(i);
+            int[] newindex = new int[index.length];
+            for (int j = 0; j < a.dimensions(); j++)
+                newindex[j] = index[a.dimensions() - j - 1];
+            ret.set(a.get(i), newindex);
+        }
+        
+        return ret;
     }
     
     // Monadic function associated with !
