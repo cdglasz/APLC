@@ -292,6 +292,40 @@ public class APLOps {
         }
     }
     
+    static class null_tie extends Operation {
+        public String symbol() { return "∘." + op.symbol(); }
+        private Operation op;
+        
+        public null_tie(Operation op) {
+            this.op = op;
+        }
+        
+        public APLTensor exec(APLTensor a, APLTensor b) {
+            
+            int[] shape = new int[a.dimensions() + b.dimensions()];
+            for (int i = 0; i < a.dimensions(); i++)
+                shape[i] = a.shape()[i];
+            for (int i = 0; i < b.dimensions(); i++)
+                shape[i+a.dimensions()] = b.shape()[i];
+            
+            double[] c = new double[APLTensor.lengthFromShape(shape)];
+            
+            int idx = 0;
+            for (int i = 0; i < a.length(); i++) {
+                for (int j = 0; j < b.length(); j++) {
+                    APLTensor r = APLOps.exec(op, new APLTensor(a.get(i)),
+                                              new APLTensor(b.get(j)));
+                    if (r == null) {
+                        return null;
+                    }
+                    c[idx++] = r.get(0);
+                }
+            }
+            
+            return new APLTensor(c, shape);
+        }
+    }
+    
     //========================================//
     //           Monadic Operators            //
     //========================================//
@@ -1025,6 +1059,55 @@ public class APLOps {
         double[] c = a.values();
         for (int i = 0; i < c.length; i++)
             c[i] = Math.log(b.get(i)) / Math.log(a.get(i));
+        return new APLTensor(c, a.shape());
+    }
+    
+    // Dyadic function associated with ⍟
+    static class combinations extends Operation {
+        public String symbol() { return "!"; }
+        public APLTensor exec(APLTensor a, APLTensor b) {
+            return APLOps.combinations(a, b);
+        }
+    }
+    public static APLTensor combinations(APLTensor a, APLTensor b) {
+        if (a.length() == 1) {
+            a.reshape(b.shape());
+        }
+        if (b.length() == 1) {
+            b.reshape(a.shape());
+        }
+        if (!Arrays.equals(a.shape(), b.shape())) {
+            log("LENGTH ERROR AT OPERATOR ⍟");
+            return null;
+        }
+        
+        double[] c = a.values();
+        for (int i = 0; i < c.length; i++) {
+            int x = (int)b.get(i);
+            int y = (int)a.get(i);
+            int z = (int)(x - y);
+            if (x == y) {
+                c[i] = 1;
+                continue;
+            } else if (x == 0 || (y*z) < 0) {
+                c[i] = 0;
+                continue;
+            } else if (x <= 0 || y <= 0 || z <= 0) {
+                log("DOMAIN ERROR AT OPERATOR !");
+                return null;
+            }
+            
+            int fx = 1;
+            int fy = 1;
+            int fz = 1;
+            for (int j = x; j > 1; j--)
+                fx *= j;
+            for (int j = y; j > 1; j--)
+                fy *= j;
+            for (int j = z; j > 1; j--)
+                fz *= j;
+            c[i] = fx / (fy * fz);
+        }
         return new APLTensor(c, a.shape());
     }
     

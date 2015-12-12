@@ -365,7 +365,11 @@ dyadic_operation returns [String code]
     ;
 
 dyadic_operator returns [String code]
-    :   ^(CONJ '.' ^(OP o1=dyadic_operator) ^(OP o2=dyadic_operator))
+    :   ^(CONJ '.' ^(OP '∘') ^(OP o=dyadic_operator))
+        {
+            $code = "new APLOps.null_tie(" + $o.code + ")";
+        }
+    |   ^(CONJ '.' ^(OP o1=dyadic_operator) ^(OP o2=dyadic_operator))
         {
             $code = "new APLOps.tie(" + $o1.code + "," + $o2.code + ")";
         }
