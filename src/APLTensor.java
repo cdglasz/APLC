@@ -214,7 +214,7 @@ public class APLTensor {
             }
             int j = i % shape[shape.length-1];
             
-            String form = "%"+(-rightpad[j])+"s";
+            String form = "%"+(rightpad[j])+"s";
             if (leftpad[j] > 0 && strValues[i].charAt(0) != '-')
                 strValues[i] = " " + strValues[i];
             str += String.format(form, strValues[i]);
