@@ -7,7 +7,7 @@ options {
 }
 
 tokens{
-    STMTLIST;ARRAY;PAREN;VAR;FUNC;OP;ADV;CONJ;BACKSLASH;SUPPRESS;
+STMTLIST;ARRAY;PAREN;VAR;FUNC;SIG;OP;ADV;CONJ;BACKSLASH;SUPPRESS;
 }
 
 @members{
@@ -51,20 +51,57 @@ stmt_list
 
 stmt
     :   operator_def
+    |   inline_operator_def
     |   expression ';'      ->  ^(SUPPRESS expression)
     |   expression
     ;
 
-operator_def
+inline_operator_def
     :   // We're starting a function, so reset the current arity
         { current_arity.push(0); }
-        f=TARGET '←' '{' s=stmt_list '}'
+        f=TARGET '←' '{' s=stmt '}'
         {   // If a variable exists with this name, overwrite it
             if (user_defined_variables.contains($f.text))
                 user_defined_variables.remove($f.text);
             function_arity.put($f.text,current_arity.pop());
         }
-        -> ^(FUNC $f $s)
+        -> ^(FUNC $f ^(STMTLIST $s))
+    ;
+
+operator_def
+    :   '∇' o=TARGET {
+            if (function_arity.get($o.text) != null)
+                function_arity.remove($o.text);
+            user_defined_variables.add($o.text);
+        }
+        '←' s=signature b=stmt_list '∇' -> ^(FUNC $s $o $b)
+    ;
+
+signature
+    :   l=TARGET f=TARGET r=TARGET {
+            if (function_arity.get($l.text) != null)
+                function_arity.remove($l.text);
+            user_defined_variables.add($l.text);
+            if (user_defined_variables.contains($f.text))
+                user_defined_variables.remove($f.text);
+            function_arity.put($f.text, 2);
+            if (function_arity.get($r.text) != null)
+                function_arity.remove($r.text);
+            user_defined_variables.add($r.text);
+        } -> ^(SIG $f $l $r)
+    |   f=TARGET r=TARGET {
+            if (user_defined_variables.contains($f.text))
+                user_defined_variables.remove($f.text);
+            function_arity.put($f.text, 1);
+                if (function_arity.get($r.text) != null)
+            function_arity.remove($r.text);
+                user_defined_variables.add($r.text);
+        } -> ^(SIG $f $r)
+    |   f=TARGET {
+            if (user_defined_variables.contains($f.text))
+                user_defined_variables.remove($f.text);
+            function_arity.put($f.text, 0);
+        } -> ^(SIG $f)
     ;
 
 expression
@@ -102,7 +139,8 @@ atom
         }
     |   {   // Only use variable if it exists here
             user_defined_variables.contains(input.LT(1).getText())
-        }? TARGET
+        }?
+        TARGET
     ;
 array
     :   num+                        -> ^(ARRAY num+)
