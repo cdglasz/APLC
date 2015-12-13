@@ -59,24 +59,36 @@ public class APLOps {
                     running = op.exec(running, new APLTensor(a.get(i)));
                 return running;
             }
-            if (a.dimensions() > 2) {
-                log("OPERATOR " + symbol() + " NOT SUPPORTED FOR TENSORS OF >2 DIMENSIONS");
-                return null;
+            
+            APLTensor[] axes = a.alongAxis(a.dimensions()-1);
+            APLTensor running = axes[0].clone();
+            for (int i = 1; i < axes.length; i++) {
+                running = op.exec(running, axes[i]);
             }
-            int l = a.length();
+            return running;
+        }
+    }
+    
+    static class reduce1 extends Operation {
+        public String symbol() { return "⌿" + op.symbol(); }
+        private Operation op;
+        
+        public reduce1(Operation op) {
+            this.op = op;
+        }
+        
+        public APLTensor exec(APLTensor dc, APLTensor a) {
+            if (a.dimensions() == 1) {
+                APLTensor running = new APLTensor(a.get(0));
+                for (int i = 1; i < a.length(); i++)
+                    running = op.exec(running, new APLTensor(a.get(i)));
+                return running;
+            }
             
-            int[] newshape = new int[a.shape().length-1];
-            for (int i = 0; i < a.dimensions() - 1; i++)
-                newshape[i] = a.shape()[i];
-            
-            APLTensor[] aa = a.alongAxis(0);
-            
-            APLTensor running = new APLTensor(newshape);
-            for (int i = 0; i < aa.length; i++) {
-                running.set(aa[i].get(0),i);
-                for (int j = 1; j < aa[i].length(); j++)
-                    running.set(op.exec(new APLTensor(running.get(i)),
-                                        new APLTensor(aa[i].get(j))).get(0), i);
+            APLTensor[] axes = a.alongAxis(0);
+            APLTensor running = axes[0].clone();
+            for (int i = 1; i < axes.length; i++) {
+                running = op.exec(running, axes[i]);
             }
             return running;
         }
@@ -99,57 +111,13 @@ public class APLOps {
                                         new APLTensor(a.get(i))).get(0), i);
                 return running;
             }
-            if (a.dimensions() > 2) {
-                log("OPERATOR " + symbol() + " NOT SUPPORTED FOR TENSORS OF >2 DIMENSIONS");
-                return null;
+            APLTensor[] axes = a.alongAxis(a.dimensions()-1);
+            APLTensor[] running = new APLTensor[axes.length];
+            running[0] = axes[0].clone();
+            for (int i = 1; i < axes.length; i++) {
+                running[i] = op.exec(running[i-1], axes[i]);
             }
-            APLTensor[] aa = a.alongAxis(0);
-            APLTensor running = new APLTensor(a.shape());
-            int idx = 0;
-            for (int i = 0; i < aa.length; i++) {
-                running.set(aa[i].get(0),idx++);
-                for (int j = 1; j < aa[i].length(); j++)
-                    running.set(op.exec(new APLTensor(running.get(idx-1)),
-                                        new APLTensor(aa[i].get(j))).get(0), idx++);
-            }
-            return running;
-        }
-    }
-    static class reduce1 extends Operation {
-        public String symbol() { return "⌿" + op.symbol(); }
-        private Operation op;
-        
-        public reduce1(Operation op) {
-            this.op = op;
-        }
-        
-        public APLTensor exec(APLTensor dc, APLTensor a) {
-            if (a.dimensions() == 1) {
-                APLTensor running = new APLTensor(a.get(0));
-                for (int i = 1; i < a.length(); i++)
-                    running = op.exec(running, new APLTensor(a.get(i)));
-                return running;
-            }
-            if (a.dimensions() > 2) {
-                log("OPERATOR " + symbol() + " NOT SUPPORTED FOR TENSORS OF >2 DIMENSIONS");
-                return null;
-            }
-            int l = a.length();
-            
-            int[] newshape = new int[a.dimensions()-1];
-            for (int i = 1; i < a.dimensions(); i++)
-                newshape[i-1] = a.shape()[i];
-            
-            APLTensor[] aa = a.alongAxis(a.dimensions()-1);
-            
-            APLTensor running = new APLTensor(newshape);
-            for (int i = 0; i < aa.length; i++) {
-                running.set(aa[i].get(0),i);
-                for (int j = 1; j < aa[i].length(); j++)
-                    running.set(op.exec(new APLTensor(running.get(i)),
-                                        new APLTensor(aa[i].get(j))).get(0), i);
-            }
-            return running;
+            return APLTensor.mergeAxes(a.dimensions()-1, running);
         }
     }
     
@@ -170,26 +138,13 @@ public class APLOps {
                                         new APLTensor(a.get(i))).get(0), i);
                 return running;
             }
-            if (a.dimensions() > 2) {
-                log("OPERATOR " + symbol() + " NOT SUPPORTED FOR TENSORS OF >2 DIMENSIONS");
-                return null;
+            APLTensor[] axes = a.alongAxis(0);
+            APLTensor[] running = new APLTensor[axes.length];
+            running[0] = axes[0].clone();
+            for (int i = 1; i < axes.length; i++) {
+                running[i] = op.exec(running[i-1], axes[i]);
             }
-            
-            int[] newshape = new int[a.dimensions()];
-            for (int i = 0; i < a.dimensions(); i++)
-                newshape[i] = a.shape()[a.dimensions()-i-1];
-            
-            APLTensor[] aa = a.alongAxis(a.dimensions()-1);
-            APLTensor running = new APLTensor(newshape);
-            int idx = 0;
-            for (int i = 0; i < aa.length; i++) {
-                running.set(aa[i].get(0),idx++);
-                for (int j = 1; j < aa[i].length(); j++)
-                    running.set(op.exec(new APLTensor(running.get(idx-1)),
-                                        new APLTensor(aa[i].get(j))).get(0), idx++);
-            }
-            running = trans(running);
-            return running;
+            return APLTensor.mergeAxes(0, running);
         }
     }
     
