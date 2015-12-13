@@ -322,7 +322,7 @@ monadic_operator returns [String code]
         }
     |   ',' 
         {
-            $code = "new APLOps.cat()";
+            $code = "new APLOps.ravel()";
         }
     |   '○' 
         {
@@ -347,6 +347,10 @@ monadic_operator returns [String code]
     |   '!' 
         {
             $code = "new APLOps.factorial()";
+        }
+    |   '⍕'
+        {
+            $code = "new APLOps.round()";
         }
     ;
 
@@ -426,11 +430,11 @@ dyadic_operator returns [String code]
         }
     |   '∨'
         { 
-            $code = "new APLOps.or()"; 
+            $code = "new APLOps.gcd()";
         }
     |   '∧'
         { 
-            $code = "new APLOps.and()"; 
+            $code = "new APLOps.lcm()";
         }
     |   '⍱'
         { 
@@ -504,20 +508,20 @@ dyadic_operator returns [String code]
         { 
             $code = "new APLOps.log()";
         }
-    |   '⌽'
-        {
-            $code = "new APLOps.rot1()";
-        }
-    |   '⊖'
-        {
-            $code = "new APLOps.rot2()";
-        }
     |   '⍉'
         {
-            $code = "new APLOps.transpose()";
+            $code = "new APLOps.permute()";
         }
     |   '!'
         { 
             $code = "new APLOps.combinations()"; 
+        }
+    |   '⍕'
+        {
+            $code = "new APLOps.format()";
+        }
+    |   '/'
+        {
+            $code = "new APLOps.compress()";
         }
     ;

@@ -188,6 +188,7 @@ public class APLOps {
                     running.set(op.exec(new APLTensor(running.get(idx-1)),
                                         new APLTensor(aa[i].get(j))).get(0), idx++);
             }
+            running = trans(running);
             return running;
         }
     }
@@ -568,6 +569,17 @@ public class APLOps {
         return new APLTensor(c,a.shape());
     }
     
+    // Monadic function associated with ,
+    static class ravel extends Operation {
+        public String symbol() { return ","; }
+        public APLTensor exec(APLTensor dc, APLTensor a) {
+            return APLOps.ravel(a);
+        }
+    }
+    public static APLTensor ravel(APLTensor a) {
+        return new APLTensor(a.values(), a.length());
+    }
+    
     // Monadic function associated with ⍟
     static class ln extends Operation {
         public String symbol() { return "⍟"; }
@@ -610,7 +622,7 @@ public class APLOps {
         return ret;
     }
     
-    // Monadic function associated with ⌽
+    // Monadic function associated with ⊖
     static class reverse2 extends Operation {
         public String symbol() { return "⌽"; }
         public APLTensor exec(APLTensor dc, APLTensor a) {
@@ -679,6 +691,21 @@ public class APLOps {
             for (int j = (int)c[i]-1; j > 0; j--)
                 c[i] *= j;
             c[i] = c[i] == 0 ? 1 : c[i];
+        }
+        return new APLTensor(c,a.shape());
+    }
+    
+    // Monadic function associated with ⍕
+    static class round extends Operation {
+        public String symbol() { return "⍕"; }
+        public APLTensor exec(APLTensor dc, APLTensor a) {
+            return APLOps.round(a);
+        }
+    }
+    public static APLTensor round(APLTensor a) {
+        double[] c = a.values();
+        for (int i = 0; i < c.length; i++) {
+            c[i] = Math.round(c[i]);
         }
         return new APLTensor(c,a.shape());
     }
@@ -863,7 +890,7 @@ public class APLOps {
         
         double[] c = (new APLTensor(newshape)).values();
         for (int i = 0; i < b.length(); i++)
-            c[0] += b.get(i) * Math.pow(a.get(0),b.length()-i-1);
+            c[0] += b.get(i) * Math.pow(a.get(i),b.length()-i-1);
         return new APLTensor(c, newshape);
     }
     
@@ -875,11 +902,15 @@ public class APLOps {
         }
     }
     public static APLTensor encode(APLTensor a, APLTensor b) {
-        if (a.shape().length != 1 || b.shape().length != 1) {
+        if (b.shape().length != 1 || a.shape().length != 1) {
             log("LENGTH ERROR AT OPERATOR ⊤");
             return null;
         }
-        int[] newshape = new int[] {b.length(), a.length()};
+        int[] newshape;
+        if (b.length() == 1)
+            newshape = new int[] {a.length()};
+        else
+            newshape = new int[] {b.length(), a.length()};
         double[] c = new APLTensor(newshape).values();
         for (int i = 0; i < b.length(); i++) {
             double remainder = b.get(i);
@@ -889,7 +920,9 @@ public class APLOps {
                 remainder -= c[i*a.length() + j] * power;
             }
         }
-        return new APLTensor(c, newshape);
+        APLTensor ret = new APLTensor(c, newshape);
+        ret = trans(ret);
+        return ret;
     }
     
     // Dyadic function associated with ?
@@ -1413,13 +1446,13 @@ public class APLOps {
     }
     
     // Dyadic function associated with ∨
-    static class or extends Operation {
+    static class gcd extends Operation {
         public String symbol() { return "∨"; }
         public APLTensor exec(APLTensor a, APLTensor b) {
-            return APLOps.or(a, b);
+            return APLOps.gcd(a, b);
         }
     }
-    public static APLTensor or(APLTensor a, APLTensor b) {
+    public static APLTensor gcd(APLTensor a, APLTensor b) {
         if (a.length() == 1) {
             a.reshape(b.shape());
         }
@@ -1431,19 +1464,28 @@ public class APLOps {
             return null;
         }
         double[] c = a.values();
-        for (int i = 0; i < c.length; i++)
-            c[i] = a.get(i) != 0 || b.get(i) != 0 ? 1 : 0;
+        for (int i = 0; i < c.length; i++) {
+            c[i] = gcd(a.get(i), b.get(i));
+        }
         return new APLTensor(c, a.shape());
+    }
+    public static double gcd(double x, double y) {
+        while (y > 0) {
+            double temp = y;
+            y = x % y;
+            x = temp;
+        }
+        return x;
     }
     
     // Dyadic function associated with ∧
-    static class and extends Operation {
+    static class lcm extends Operation {
         public String symbol() { return "∧"; }
         public APLTensor exec(APLTensor a, APLTensor b) {
-            return APLOps.and(a, b);
+            return APLOps.lcm(a, b);
         }
     }
-    public static APLTensor and(APLTensor a, APLTensor b) {
+    public static APLTensor lcm(APLTensor a, APLTensor b) {
         if (a.length() == 1) {
             a.reshape(b.shape());
         }
@@ -1455,8 +1497,11 @@ public class APLOps {
             return null;
         }
         double[] c = a.values();
-        for (int i = 0; i < c.length; i++)
-            c[i] = a.get(i) != 0 && b.get(i) != 0 ? 1 : 0;
+        for (int i = 0; i < c.length; i++) {
+            double d = gcd(a.get(i), b.get(i));
+            if (d == 0) c[i] = 0;
+            else c[i] = a.get(i) * (b.get(i) / d);
+        }
         return new APLTensor(c, a.shape());
     }
     
@@ -1554,5 +1599,63 @@ public class APLOps {
         for (int i = 0; i < c.length; i++)
             c[i] = Math.min(a.get(i), b.get(i));
         return new APLTensor(c, a.shape());
+    }
+    
+    // Dyadic function associated with ⍕
+    static class format extends Operation {
+        public String symbol() { return "⍕"; }
+        public APLTensor exec(APLTensor a, APLTensor b) {
+            return APLOps.format(a, b);
+        }
+    }
+    public static APLTensor format(APLTensor a, APLTensor b) {
+        if (a.length() == 1) {
+            a.reshape(b.shape());
+        }
+        if (b.length() == 1) {
+            b.reshape(a.shape());
+        }
+        if (!Arrays.equals(a.shape(), b.shape())) {
+            log("LENGTH ERROR AT OPERATOR ⌊");
+            return null;
+        }
+        double[] c = b.values();
+        for (int i = 0; i < c.length; i++) {
+            int dec = (int)a.get(i);
+            c[i] *= Math.pow(10, dec);
+            c[i] = Math.round(c[i]);
+            c[i] /= Math.pow(10, dec);
+        }
+        return new APLTensor(c, a.shape());
+    }
+    
+    // Dyadic function associated with ⍉
+    static class permute extends Operation {
+        public String symbol() { return "⍉"; }
+        public APLTensor exec(APLTensor a, APLTensor b) {
+            return APLOps.permute(a, b);
+        }
+    }
+    public static APLTensor permute(APLTensor a, APLTensor b) {
+        if (a.length() != b.dimensions()) {
+            log("LENGTH ERROR AT OPERATOR ⍉");
+            return null;
+        }
+        
+        int[] newshape = new int[b.dimensions()];
+        for (int i = 0; i < b.dimensions(); i++)
+            newshape[i] = b.shape()[(int)a.get(i)-1];
+        
+        APLTensor ret = new APLTensor(newshape);
+        
+        for (int i = 0; i < b.length(); i++) {
+            int[] index = b.index(i);
+            int[] newindex = new int[index.length];
+            for (int j = 0; j < b.dimensions(); j++)
+                newindex[j] = index[(int)a.get(j)-1];
+            ret.set(b.get(i), newindex);
+        }
+        
+        return ret;
     }
 }
