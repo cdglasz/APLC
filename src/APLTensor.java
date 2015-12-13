@@ -239,12 +239,39 @@ public class APLTensor {
         for (int i = 0; i < values.length; i++)
             strValues[i] = df.format(values[i]);
         
-        int[] rightpad = new int[shape[shape.length-1]];
-        int[] leftpad = new int[shape[shape.length-1]];
+        int[] columnLeft = new int[shape[shape.length - 1]];
+        int[] columnRight = new int[shape[shape.length - 1]];
         for (int i = 0; i < values.length; i++) {
             int j = i % shape[shape.length-1];
-            rightpad[j] = Math.max(rightpad[j], strValues[i].length() + 1);
-            leftpad[j] = strValues[i].charAt(0) == '-' ? 1 : leftpad[j];
+            int decimal = strValues[i].indexOf('.');
+            if (decimal < 0) {
+                decimal = strValues[i].length();
+                strValues[i] = strValues[i] + " ";
+            }
+            int before = decimal;
+            int after = strValues[i].length() - decimal - 1;
+            columnLeft[j] = Math.max(columnLeft[j], before);
+            columnRight[j] = Math.max(columnRight[j], after);
+        }
+        
+        for (int i = 0; i < values.length; i++) {
+            String v = strValues[i];
+            int j = i % shape[shape.length-1];
+            
+            int decimal = v.indexOf('.');
+            if (decimal < 0) {
+                decimal = v.length() - 1;
+            }
+            int before = decimal;
+            int leftDecimalPad = v.length() - before + columnLeft[j];
+            String form = "%"+(leftDecimalPad)+"s";
+            strValues[i] = String.format(form, strValues[i]);
+            
+            int after = v.length() - decimal - 1;
+            int rightDecimalPad = strValues[i].length() - after + columnRight[j];
+            form = "%"+(-rightDecimalPad)+"s";
+            strValues[i] = String.format(form, strValues[i]) + " ";
+            
         }
         
         for (int i = 0; i < values.length; i++) {
@@ -254,16 +281,10 @@ public class APLTensor {
                 if (((int)(i / sh) >= 1) && (i % sh == 0))
                     str += "\n";
             }
-            int j = i % shape[shape.length-1];
+            //int j = i % shape[shape.length-1];
             
-            String form = "%"+(rightpad[j])+"s";
-            if (leftpad[j] > 0 && strValues[i].charAt(0) != '-')
-                strValues[i] = " " + strValues[i];
-            str += String.format(form, strValues[i]);
+            str += strValues[i];
         }
-        
-        // Print underline as separator
-        //str += "\n"+ (char)27 + "[4m" + String.format("%80s","") + (char)27 + "[24m";
         
         return str;
     }
