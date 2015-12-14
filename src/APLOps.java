@@ -702,32 +702,24 @@ public class APLOps {
             return null;
         }
         
-        int[] shape = b.shape();
-        int[] newshape = new int[shape.length];
-        for (int i = 0; i < shape.length; i++)
-            newshape[i] = (int)a.get(i);
+        APLTensor ret = b.clone();
+        for (int i = 0; i < a.length(); i++) {
+            int take = (int)a.get(i);
+            APLTensor[] axes = ret.alongAxis(i);
+            APLTensor[] newaxes = new APLTensor[Math.abs(take)];
+            if (take < 0) {
+                take = -1 * take;
+                for (int j = 0; j < take; j++)
+                    newaxes[j] = axes[j + axes.length - take];
+            } else {
+                for (int j = 0; j < take; j++)
+                    newaxes[j] = axes[j];
+            }
+            ret = APLTensor.mergeAxes(i, newaxes);
+        }
         
-        APLTensor c = b.clone();
-        c.restrict(newshape);
+        return ret;
         
-        //        for (int i = 0; i < a.length(); i++) {
-        //            int l = (int)a.get(0);
-        //            boolean first = l > 0;
-        //            l = Math.abs(l);
-        //            double[] c = new double[l];
-        //            if (first) {
-        //                for (int i = 0; i < l; i++) {
-        //                    c[i] = i < b.length() ? b.get(i) : 0;
-        //                }
-        //            } else {
-        //                for (int i = 0; i < l; i++) {
-        //                    int j = b.length() - l + i;
-        //                    c[i] = j >= 0 ? b.get(j) : 0;
-        //                }
-        //            }
-        //        }
-        
-        return c;
     }
     
     // Dyadic function associated with ↓
@@ -738,41 +730,28 @@ public class APLOps {
         }
     }
     public static APLTensor drop(APLTensor a, APLTensor b) {
-        if (a.length() == 1) {
-            a.reshape(b.shape().length);
-        }
-        
-        int[] shape = b.shape();
-        int[] newshape = new int[shape.length];
-        for (int i = 0; i < shape.length; i++)
-            newshape[i] = shape[i] - (int)Math.abs(a.get(i));
-        
-        
-        
-        int l = a.length();
         if (a.length() != b.shape().length) {
-            log("LENGTH ERROR AT OPERATOR ↓");
+            log("LENGTH ERROR AT OPERATOR ↑");
             return null;
-        }
-        l = (int)a.get(0);
-        if (Math.abs(l) >= b.length()) {
-            return null;
-        }
-        boolean first = l < 0;
-        l = b.length() - Math.abs(l);
-        double[] c = new double[l];
-        if (first) {
-            for (int i = 0; i < l; i++) {
-                c[i] = i < b.length() ? b.get(i) : 0;
-            }
-        } else {
-            for (int i = 0; i < l; i++) {
-                int j = b.length() - l + i;
-                c[i] = j >= 0 ? b.get(j) : 0;
-            }
         }
         
-        return new APLTensor(c, newshape);
+        APLTensor ret = b.clone();
+        for (int i = 0; i < a.length(); i++) {
+            int drop = (int)a.get(i);
+            APLTensor[] axes = ret.alongAxis(i);
+            APLTensor[] newaxes = new APLTensor[axes.length - Math.abs(drop)];
+            if (drop < 0) {
+                drop = -1 * drop;
+                for (int j = 0; j < axes.length - drop; j++)
+                    newaxes[j] = axes[j];
+            } else {
+                for (int j = 0; j < axes.length - drop; j++)
+                    newaxes[j] = axes[j + drop];
+            }
+            ret = APLTensor.mergeAxes(i, newaxes);
+        }
+        
+        return ret;
     }
     
     // Dyadic function associated with /
