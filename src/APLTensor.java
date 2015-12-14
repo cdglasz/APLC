@@ -176,53 +176,54 @@ public class APLTensor {
     }
     
     public APLTensor[] alongAxis(int axis) {
-        APLTensor[] ret = new APLTensor[shape[axis]];
+        int numAxes = shape[axis];
+        
+        APLTensor[] ret = new APLTensor[numAxes];
         int[] newshape = new int[shape.length - 1];
         
-        int tensorSize = 1;
-        for (int i = 0; i < axis; i++) {
-            tensorSize *= shape[i];
+        int postaxis = 1;
+        for (int i = 0; i < axis; i++)
             newshape[i] = shape[i];
-        }
         for (int i = axis+1; i < shape.length; i++) {
-            tensorSize *= shape[i];
+            postaxis *= shape[i];
             newshape[i-1] = shape[i];
         }
         
-        for (int i = 0; i < shape[axis]; i++) {
-            APLTensor t = new APLTensor(newshape);
-            for (int j = 0; j < tensorSize; j++) {
-                if (axis == 0)
-                    t.set(values[i*tensorSize + j], j);
-                else
-                    t.set(values[i + j*shape[axis]], j);
-            }
-            ret[i] = t;
+        for (int i = 0; i < numAxes; i++) {
+            ret[i] = new APLTensor(newshape);
         }
+        
+        int[] index = new int[numAxes];
+        for (int i = 0; i < values.length; i++) {
+            int j = (i / postaxis) % numAxes;
+            ret[j].set(values[i], index[j]++);
+        }
+        
         return ret;
     }
     
     public static APLTensor mergeAxes(int axis, APLTensor[] axes) {
         int[] oldshape = axes[0].shape();
-        int[] newshape = new int[oldshape.length + 1];
-        for (int i = 0; i < axis; i++)
-            newshape[i] = oldshape[i];
-        newshape[axis] = axes.length;
-        for (int i = axis; i < oldshape.length; i++)
-            newshape[i+1] = oldshape[i];
+        int[] shape = new int[oldshape.length + 1];
         
-        int tensorSize = axes[0].length();
-        
-        APLTensor ret = new APLTensor(newshape);
-        
-        for (int i = 0; i < axes.length; i++) {
-            for (int j = 0; j < tensorSize; j++) {
-                if (axis == 0)
-                    ret.set(axes[i].get(j), i*tensorSize + j);
-                else
-                    ret.set(axes[i].get(j), i + j*newshape[axis]);
-            }
+        int postaxis = 1;
+        for (int i = 0; i < axis; i++) {
+            shape[i] = oldshape[i];
         }
+        shape[axis] = axes.length;
+        for (int i = axis; i < oldshape.length; i++) {
+            postaxis *= oldshape[i];
+            shape[i+1] = oldshape[i];
+        }
+        
+        APLTensor ret = new APLTensor(shape);
+        
+        int[] index = new int[axes.length];
+        for (int i = 0; i < ret.length(); i++) {
+            int j = (i / postaxis) % axes.length;
+            ret.set(axes[j].get(index[j]++),i);
+        }
+        
         return ret;
     }
     
