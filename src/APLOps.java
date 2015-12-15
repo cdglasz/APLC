@@ -4,7 +4,7 @@ public class APLOps {
     
     private static String errorLog = "";
     
-    private static void log(String error) {
+    public static void log(String error) {
         errorLog += error + "\n";
     }
     
