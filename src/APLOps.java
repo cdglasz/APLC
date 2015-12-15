@@ -1307,6 +1307,19 @@ public class APLOps {
         return new APLTensor(c, a.shape());
     }
     
+    // Dyadic function associated with ≡
+    static class equivilent extends Operation {
+        public String symbol() { return "≡"; }
+        public APLTensor exec(APLTensor a, APLTensor b) {
+            return APLOps.equivilent(a, b);
+        }
+    }
+    public static APLTensor equivilent(APLTensor a, APLTensor b) {
+        if (a.equals(b))
+            return new APLTensor(1.0);
+        return new APLTensor(0.0);
+    }
+    
     // Dyadic function associated with ≥
     static class greq extends Operation {
         public String symbol() { return "≥"; }

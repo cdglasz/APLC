@@ -558,9 +558,13 @@ dyadic_operator returns [String code]
         { 
             $code = "new APLOps.equ()"; 
         }
+    |   '≡'
+        {
+            $code = "new APLOps.equivilent()";
+        }
     |   '≥'
-        { 
-            $code = "new APLOps.greq()"; 
+        {
+            $code = "new APLOps.greq()";
         }
     |   '>'
         { 
