@@ -479,7 +479,7 @@ monadic_operator returns [String code]
     ;
 
 dyadic_operation returns [String code]
-    :   ^(OP o=dyadic_operator s=simple_expression e=expression)
+    :   ^(OP o=dyadic_operator e=expression s=simple_expression)
         {
             String temp = getTempVar();
             $code = $e.code + indent(indent.peek());

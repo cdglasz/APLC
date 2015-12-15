@@ -117,7 +117,8 @@ expression
     ;
 
 dyad
-    :   a=atom o=dyadic_operator e=expression -> ^(OP $o $a $e)
+    :   // Put operands in reverse order in AST so right is generated first
+        a=atom o=dyadic_operator e=expression -> ^(OP $o $e $a)
     ;
 monad
     :   o=monadic_operator e=expression -> ^(OP $o $e)
