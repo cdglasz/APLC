@@ -45,7 +45,7 @@ public class APLOps {
     //           Adverb Operators             //
     //========================================//
     static class reduce extends Operation {
-        public String symbol() { return "/" + op.symbol(); }
+        public String symbol() { return op.symbol() + "/"; }
         private Operation op;
         
         public reduce(Operation op) {
@@ -70,7 +70,7 @@ public class APLOps {
     }
     
     static class reduce1 extends Operation {
-        public String symbol() { return "⌿" + op.symbol(); }
+        public String symbol() { return op.symbol() + "⌿"; }
         private Operation op;
         
         public reduce1(Operation op) {
@@ -95,7 +95,7 @@ public class APLOps {
     }
     
     static class scan extends Operation {
-        public String symbol() { return "\\" + op.symbol(); }
+        public String symbol() { return op.symbol() + "\\"; }
         private Operation op;
         
         public scan(Operation op) {
@@ -122,7 +122,7 @@ public class APLOps {
     }
     
     static class scan1 extends Operation {
-        public String symbol() { return "⍀" + op.symbol(); }
+        public String symbol() { return op.symbol() + "⍀"; }
         private Operation op;
         
         public scan1(Operation op) {
@@ -149,7 +149,7 @@ public class APLOps {
     }
     
     static class each extends Operation {
-        public String symbol() { return "¨" + op.symbol(); }
+        public String symbol() { return op.symbol() + "¨"; }
         private Operation op;
         
         public each(Operation op) {
