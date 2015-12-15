@@ -801,65 +801,112 @@ public class APLOps {
     }
     
     // Dyadic function associated with ⊥
-    static class decode extends Operation {
+    static class base extends Operation {
         public String symbol() { return "⊥"; }
         public APLTensor exec(APLTensor a, APLTensor b) {
-            return APLOps.decode(a, b);
+            return APLOps.base(a, b);
         }
     }
-    public static APLTensor decode(APLTensor a, APLTensor b) {
-        if (a.length() == 1) {
-            a.reshape(b.shape());
+    public static APLTensor base(APLTensor a, APLTensor b) {
+        if (a.dimensions() != 1) {
+            log("LENGTH ERROR AT OPERATOR ⊥");
+            return null;
         }
-        
-        if (a.length() != b.length()) {
+        if (a.length() == 1) {
+            a.reshape(b.shape()[0]);
+        } else if (b.shape()[0] != a.shape()[0]) {
             log("LENGTH ERROR AT OPERATOR ⊥");
             return null;
         }
         
         int[] newshape;
-        if (a.shape().length == 1)
+        if (b.dimensions() == 1)
             newshape = new int[] {1};
         else {
-            newshape = new int[a.shape().length-1];
-            for (int i = 1; i < a.shape().length; i++)
-                newshape[i-1] = a.shape()[i];
+            newshape = new int[b.dimensions() - 1];
+            for (int i = 1; i < b.dimensions(); i++)
+                newshape[i - 1] = b.shape()[i];
         }
         
-        double[] c = (new APLTensor(newshape)).values();
-        for (int i = 0; i < b.length(); i++)
-            c[0] += b.get(i) * Math.pow(a.get(i),b.length()-i-1);
-        return new APLTensor(c, newshape);
+        
+        APLTensor[] axes;
+        if (b.dimensions() == 1)
+            axes = new APLTensor[] {b};
+        else {
+            APLTensor b2 = b.clone();
+            b2.reshape(a.length(), b.length()/a.length());
+            axes = b2.alongAxis(1);
+        }
+        
+        int m = 1;
+        for (int i = 0; i < a.length(); i++)
+            m *= (int)a.get(i);
+        
+        APLTensor ret = new APLTensor(newshape);
+        int numbers = b.length() / a.length();
+        for (int i = 0; i < numbers; i++) {
+            axes[i] = trans(axes[i]);
+            double term = m;
+            double x = 0;
+            for (int j = 0; j < a.length(); j++) {
+                term /= a.get(j);
+                x += axes[i].get(j) * term;
+            }
+            ret.set(x, i);
+        }
+        return ret;
     }
     
     // Dyadic function associated with ⊤
-    static class encode extends Operation {
+    static class antibase extends Operation {
         public String symbol() { return "⊤"; }
         public APLTensor exec(APLTensor a, APLTensor b) {
-            return APLOps.encode(a, b);
+            return APLOps.antibase(a, b);
         }
     }
-    public static APLTensor encode(APLTensor a, APLTensor b) {
-        if (b.shape().length != 1 || a.shape().length != 1) {
+    public static APLTensor antibase(APLTensor a, APLTensor b) {
+        if (a.dimensions() != 1) {
             log("LENGTH ERROR AT OPERATOR ⊤");
             return null;
         }
         int[] newshape;
-        if (b.length() == 1)
-            newshape = new int[] {a.length()};
-        else
-            newshape = new int[] {b.length(), a.length()};
-        double[] c = new APLTensor(newshape).values();
-        for (int i = 0; i < b.length(); i++) {
-            double remainder = b.get(i);
-            for (int j = 0; j < a.length(); j++) {
-                double power = Math.pow(a.get(j),a.length()-j-1);
-                c[i*a.length() + j] = (int)(remainder / power);
-                remainder -= c[i*a.length() + j] * power;
-            }
+        if (a.length() == 1)
+            newshape = b.shape();
+        else if (b.length() == 1)
+            newshape = a.shape();
+        else {
+            newshape = new int[a.dimensions() + b.dimensions()];
+            newshape[0] = a.shape()[0];
+            for (int i = 0; i < b.dimensions(); i++)
+                newshape[i+1] = b.shape()[i];
         }
-        APLTensor ret = new APLTensor(c, newshape);
-        ret = trans(ret);
+        
+        int m = 1;
+        for (int i = 0; i < a.length(); i++)
+            m *= (int)a.get(i);
+        
+        
+        int numbers = b.length();
+        APLTensor[] axes = new APLTensor[numbers];
+        
+        APLTensor ret = new APLTensor(newshape);
+        int digits = a.length() * b.length();
+        int index = 0;
+        for (int i = 0; i < numbers; i++) {
+            axes[i] = new APLTensor(a.shape());
+            double remainder = b.get(i);
+            double term = m;
+            for (int j = 0; j < a.length() - 1; j++) {
+                term /= a.get(j);
+                int k = index++;
+                axes[i].set((int)(remainder / term) % a.get(j), j);
+                remainder -= axes[i].get(j) * term;
+            }
+            axes[i].set(remainder % a.get(a.length() - 1), a.length() - 1);
+            axes[i] = trans(axes[i]);
+        }
+        ret = APLTensor.mergeAxes(1, axes);
+        ret.reshape(newshape);
         return ret;
     }
     

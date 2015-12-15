@@ -592,11 +592,11 @@ dyadic_operator returns [String code]
         }
     |   '⊥'
         { 
-            $code = "new APLOps.decode()"; 
+            $code = "new APLOps.base()";
         }
     |   '⊤'
         { 
-            $code = "new APLOps.encode()"; 
+            $code = "new APLOps.antibase()";
         }
     |   '?'
         { 
