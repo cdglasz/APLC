@@ -185,7 +185,7 @@ operator_def returns [String code]
             udo += "(APLTensor _A__left_, APLTensor _A__right_)";
             udo += "{\n" + indent(3);
             
-            udo += "APLTensor _FV__out_;\n" + indent(3);
+            udo += "APLTensor _FV__out_ = null;\n" + indent(3);
             udo += "APLTensor _FV__left_ = _A__left_;\n" + indent(3);
             udo += "APLTensor _FV__right_ = _A__right_;\n" + indent(3);
             
@@ -196,6 +196,10 @@ operator_def returns [String code]
             udo += $s.code;
 
             // Return the result
+            udo += indent(3);
+            udo += "if (_FV__out_ == null)\n";
+            udo += indent(4);
+            udo += "APLOps.log(\"DYADIC OPERATOR " + f1 + " RETURNED NULL\");";
             udo += indent(3);
             udo += "return _FV__out_;\n";
             udo += indent(2) + "}\n";
@@ -226,7 +230,7 @@ operator_def returns [String code]
             udo += "(APLTensor _A__left_, APLTensor _A__right_)";
             udo += "{\n" + indent(3);
             
-            udo += "APLTensor _FV__out_;\n" + indent(3);
+            udo += "APLTensor _FV__out_ = null;\n" + indent(3);
             udo += "APLTensor _FV__right_ = _A__right_;\n" + indent(3);
             
             // Left and right running variables
@@ -236,6 +240,10 @@ operator_def returns [String code]
             udo += $s.code;
 
             // Return the result
+            udo += indent(3);
+            udo += "if (_FV__out_ == null)\n";
+            udo += indent(4);
+            udo += "APLOps.log(\"MONADIC OPERATOR " + f1 + " RETURNED NULL\");";
             udo += indent(3);
             udo += "return _FV__out_;\n";
             udo += indent(2) + "}\n";
@@ -265,7 +273,7 @@ operator_def returns [String code]
             udo += "(APLTensor _A__left_, APLTensor _A__right_)";
             udo += "{\n" + indent(3);
             
-            udo += "APLTensor _FV__out_;\n" + indent(3);
+            udo += "APLTensor _FV__out_ = null;\n" + indent(3);
             
             // Left and right running variables
             udo += "APLTensor _T__left_, _T__right_;\n";
@@ -274,6 +282,10 @@ operator_def returns [String code]
             udo += $s.code;
 
             // Return the result
+            udo += indent(3);
+            udo += "if (_FV__out_ == null)\n";
+            udo += indent(4);
+            udo += "APLOps.log(\"NILADIC OPERATOR " + f1 + " RETURNED NULL\");";
             udo += indent(3);
             udo += "return _FV__out_;\n";
             udo += indent(2) + "}\n";
