@@ -973,7 +973,7 @@ public class APLOps {
         }
         double[] c = a.values();
         for (int i = 0; i < c.length; i++)
-            c[i] = a.get(i) % b.get(i);
+            c[i] = b.get(i) % a.get(i);
         return new APLTensor(c, a.shape());
     }
     
