@@ -228,17 +228,48 @@ public class APLTensor {
     }
     
     public boolean equals(APLTensor other) {
-        return Arrays.equals(values, other.values()) && Arrays.equals(shape, other.shape);
+        return (Arrays.equals(values, other.values()) &&
+                Arrays.equals(shape, other.shape));
     }
     
     public String toString() {
-        DecimalFormat df = new DecimalFormat("#.##########");
+        DecimalFormat df = new DecimalFormat("#.#########");
+        DecimalFormat sn = new DecimalFormat("0.000000000E0");
         String str = "";
         
         
         String[] strValues = new String[values.length];
         for (int i = 0; i < values.length; i++)
             strValues[i] = df.format(values[i]);
+        
+        boolean[] scinot = new boolean[shape[shape.length - 1]];
+        Arrays.fill(scinot, false);
+        for (int i = 0; i < values.length; i++) {
+            int j = i % shape[shape.length-1];
+            if (strValues[i].length() > 15)
+                scinot[j] = true;
+        }
+        for (int i = 0; i < values.length; i++) {
+            int j = i % shape[shape.length-1];
+            String v = strValues[i];
+            if (scinot[j])
+                v = sn.format(values[i]);
+            
+            // Negative values
+            int neg = v.indexOf('-');
+            if (neg >= 0)
+                v = v.substring(0,neg) + "¯" + v.substring(neg+1,v.length());
+            
+            // Negative exponent
+            neg = v.indexOf('-');
+            if (neg >= 0)
+                v = v.substring(0,neg) + "¯" + v.substring(neg+1,v.length());
+            
+            strValues[i] = v;
+        }
+        
+        
+        
         
         int[] columnLeft = new int[shape[shape.length - 1]];
         int[] columnRight = new int[shape[shape.length - 1]];
@@ -258,6 +289,8 @@ public class APLTensor {
         for (int i = 0; i < values.length; i++) {
             String v = strValues[i];
             int j = i % shape[shape.length-1];
+            
+                
             
             int decimal = v.indexOf('.');
             if (decimal < 0) {
