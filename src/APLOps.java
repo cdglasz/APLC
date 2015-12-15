@@ -319,9 +319,15 @@ public class APLOps {
         }
     }
     public static APLTensor sort(APLTensor a) {
-        double[] c = a.values();
-        Arrays.sort(c);
-        return new APLTensor(c,a.shape());
+        if (a.dimensions() == 1) {
+            double[] c = a.values();
+            Arrays.sort(c);
+            return new APLTensor(c,a.shape());
+        }
+        APLTensor[] axes = a.alongAxis(0);
+        for (int i = 0; i < axes.length; i++)
+            axes[i] = sort(axes[i]);
+        return APLTensor.mergeAxes(0, axes);
     }
     
     // Monadic function associated with ⍒
@@ -332,9 +338,7 @@ public class APLOps {
         }
     }
     public static APLTensor sortdown(APLTensor a) {
-        double[] c = a.values();
-        Arrays.sort(c);
-        return reverse(new APLTensor(c,a.shape()));
+        return reverse(sort(a));
     }
     
     // Monadic function associated with ?
