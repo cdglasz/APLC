@@ -314,6 +314,10 @@ atom returns [String code]
         {
             String v1 = $t.text;
             String v2 = variableName.get(v1);
+            if (v2 == null) {
+                System.err.println("Compiler error: use of undefined variable");
+                System.exit(1);
+            }
             $code = indent(indent.peek()) + "_T__right_ = " + v2 + ";\n";
         }
     ;

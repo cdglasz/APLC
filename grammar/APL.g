@@ -138,10 +138,7 @@ atom
         {   // A left argument means this function is arity 2
             current_arity.pop(); current_arity.push(2);
         }
-    |   {   // Only use variable if it exists here
-            user_defined_variables.contains(input.LT(1).getText())
-        }?
-        TARGET
+    |   TARGET
     ;
 array
     :   num+                        -> ^(ARRAY num+)
