@@ -1050,15 +1050,48 @@ public class APLOps {
         double[] c = a.values();
         for (int i = 0; i < c.length; i++) {
             switch ((int)a.get(i)) {
+                    
+                    
+                    // PYTHAGOREAN FUNCTIONS
+                case 0:
+                    c[i] = Math.sqrt(1 - Math.pow(b.get(i),2));
+                    break;
+                case 4:
+                    c[i] = Math.sqrt(1 + Math.pow(b.get(i),2));
+                    break;
+                case -4:
+                    c[i] = Math.sqrt(-1 + Math.pow(b.get(i),2));
+                    break;
+                case 8:
+                    c[i] = Math.sqrt(-1 - Math.pow(b.get(i),2));
+                    break;
+                case -8:
+                    c[i] = -Math.sqrt(-1 - Math.pow(b.get(i),2));
+                    break;
+                    
+                    
+                    // TRIGONOMETRIC
                 case 1:
                     c[i] = Math.sin(b.get(i));
+                    break;
+                case -1:
+                    c[i] = Math.asin(b.get(i));
                     break;
                 case 2:
                     c[i] = Math.cos(b.get(i));
                     break;
+                case -2:
+                    c[i] = Math.acos(b.get(i));
+                    break;
                 case 3:
                     c[i] = Math.tan(b.get(i));
                     break;
+                case -3:
+                    c[i] = Math.atan(b.get(i));
+                    break;
+                    
+                    
+                    // HYPERBOLIC
                 case 5:
                     c[i] = Math.sinh(b.get(i));
                     break;
@@ -1067,15 +1100,6 @@ public class APLOps {
                     break;
                 case 7:
                     c[i] = Math.tanh(b.get(i));
-                    break;
-                case -1:
-                    c[i] = Math.asin(b.get(i));
-                    break;
-                case -2:
-                    c[i] = Math.acos(b.get(i));
-                    break;
-                case -3:
-                    c[i] = Math.atan(b.get(i));
                     break;
                 case -5:
                     c[i] = Math.log(b.get(i) + Math.sqrt(b.get(i)*b.get(i) + 1.0));
@@ -1086,6 +1110,8 @@ public class APLOps {
                 case -7:
                     c[i] = 0.5*Math.log( (b.get(i) + 1.0) / (b.get(i) - 1.0) );
                     break;
+                    
+                    
                 default:
                     log("UNKNOWN TRIG OPTION: " + (int)a.get(i));
                     return null;
