@@ -1144,7 +1144,7 @@ public class APLOps {
         return new APLTensor(c, a.shape());
     }
     
-    // Dyadic function associated with ⍟
+    // Dyadic function associated with !
     static class combinations extends Operation {
         public String symbol() { return "!"; }
         public APLTensor exec(APLTensor a, APLTensor b) {
@@ -1159,7 +1159,7 @@ public class APLOps {
             b.reshape(a.shape());
         }
         if (!Arrays.equals(a.shape(), b.shape())) {
-            log("LENGTH ERROR AT OPERATOR ⍟");
+            log("LENGTH ERROR AT OPERATOR !");
             return null;
         }
         
@@ -1641,7 +1641,7 @@ public class APLOps {
             b.reshape(a.shape());
         }
         if (!Arrays.equals(a.shape(), b.shape())) {
-            log("LENGTH ERROR AT OPERATOR ⌊");
+            log("LENGTH ERROR AT OPERATOR ⍕");
             return null;
         }
         double[] c = b.values();
@@ -1662,14 +1662,19 @@ public class APLOps {
         }
     }
     public static APLTensor permute(APLTensor a, APLTensor b) {
-        if (a.length() != b.dimensions()) {
+        if (a.length() <= 1 || a.length() != b.dimensions()) {
             log("LENGTH ERROR AT OPERATOR ⍉");
             return null;
         }
         
         int[] newshape = new int[b.dimensions()];
-        for (int i = 0; i < b.dimensions(); i++)
+        for (int i = 0; i < b.dimensions(); i++) {
+            if (a.get(i) > b.dimensions() || a.get(i) <= 0) {
+                log("DOMAIN ERROR AT OPERATOR ⍉");
+                return null;
+            }
             newshape[i] = b.shape()[(int)a.get(i)-1];
+        }
         
         APLTensor ret = new APLTensor(newshape);
         
