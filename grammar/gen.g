@@ -86,7 +86,7 @@ options{
 }
 
 prog [String name] returns [String code]
-:   { indent.push(3); }
+:   { indent.push(2); }
         stmt_list
         {
             $code = "import java.util.*;\n";
