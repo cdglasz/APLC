@@ -959,27 +959,28 @@ public class APLOps {
         }
     }
     public static APLTensor concat(APLTensor a, APLTensor b) {
+        if (a.dimensions() == 1 && b.dimensions() == 1) {
+            double[] c = new double[a.length() + b.length()];
+            for (int i = 0; i < a.length(); i++)
+                c[i] = a.get(i);
+            for (int i = 0; i < b.length(); i++)
+                c[a.length() + i] = b.get(i);
+            return new APLTensor(c);
+        }
         
-        int[] ashape = a.shape();
-        int[] bshape = b.shape();
-        int[] sharedshape = ashape;
-        sharedshape[ashape.length-1] = bshape[bshape.length-1];
-        if (!Arrays.equals(sharedshape, bshape)) {
+        if (a.shape()[0] != b.shape()[0]) {
             log("LENGTH ERROR AT OPERATOR ,");
             return null;
         }
         
-        int[] newshape = ashape;
-        newshape[ashape.length-1] += bshape[bshape.length-1];
+        APLTensor[] a_axes = a.alongAxis(0);
+        APLTensor[] b_axes = b.alongAxis(0);
+        APLTensor[] c_axes = new APLTensor[a_axes.length];
+        for (int i = 0; i < a_axes.length; i++) {
+            c_axes[i] = concat(a_axes[i], b_axes[i]);
+        }
         
-        int newlength = a.length() + b.length();
-        double[] c = new double[newlength];
-        for (int i = 0; i < a.length(); i++)
-            c[i] = a.get(i);
-        for (int i = 0; i < b.length(); i++)
-            c[a.length() + i] = b.get(i);
-        
-        return new APLTensor(c,newshape);
+        return APLTensor.mergeAxes(0, c_axes);
     }
     
     // Dyadic function associated with ⍳
